@@ -71,9 +71,10 @@ function StakeholderPage() {
   }
 
   function getRiskLevel(score) {
-    if (score >= 7) return 'high';
-    if (score >= 4) return 'medium';
-    return 'low';
+    // Score is out of 20
+    if (score >= 14) return 'high';      // 70%+ is high risk
+    if (score >= 8) return 'medium';     // 40-69% is medium risk
+    return 'low';                         // <40% is low risk
   }
 
   function formatDate(dateString) {
@@ -105,7 +106,7 @@ function StakeholderPage() {
           </div>
           <div className={`risk-score-large risk-${riskLevel}`}>
             <div className="risk-label">Risk Score</div>
-            <div className="risk-value">{stakeholder.risk_score}</div>
+            <div className="risk-value">{stakeholder.risk_score}/20</div>
             <div className="risk-level">{riskLevel.toUpperCase()}</div>
           </div>
         </div>

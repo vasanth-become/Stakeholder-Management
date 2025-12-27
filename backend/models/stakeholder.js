@@ -1,24 +1,52 @@
 const db = require('../database/db');
 
 class Stakeholder {
-  // Calculate risk score based on power, influence, and engagement
-  static calculateRiskScore(power, influence, engagementStatus) {
-    // Risk = (Power + Influence) / 2
-    // Multiply by engagement factor:
-    // - resistant: 2.0 (doubles the risk)
-    // - neutral: 1.5 (increases risk by 50%)
-    // - supportive: 0.5 (halves the risk)
+  // Calculate risk score based on power, influence, engagement, and update gap
+  // Score out of 20:
+  // - power (1-5)
+  // - influence (1-5)
+  // - engagement penalty: supportive=0, neutral=+2, resistant=+4
+  // - update gap penalty: +3 if no interaction in last 14 days
+  static calculateRiskScore(power, influence, engagementStatus, stakeholderId = null) {
+    let score = power + influence;
 
-    const baseScore = (power + influence) / 2;
-
-    const engagementFactor = {
-      resistant: 2.0,
-      neutral: 1.5,
-      supportive: 0.5
+    // Add engagement penalty
+    const engagementPenalty = {
+      supportive: 0,
+      neutral: 2,
+      resistant: 4
     };
+    score += engagementPenalty[engagementStatus] || 2;
 
-    const factor = engagementFactor[engagementStatus] || 1.5;
-    return (baseScore * factor).toFixed(2);
+    // Add update gap penalty if stakeholder ID is provided
+    if (stakeholderId) {
+      const lastInteraction = db.prepare(`
+        SELECT MAX(date) as last_date
+        FROM interactions
+        WHERE stakeholder_id = ?
+      `).get(stakeholderId);
+
+      if (lastInteraction && lastInteraction.last_date) {
+        const daysSinceUpdate = this.getDaysSince(lastInteraction.last_date);
+        if (daysSinceUpdate > 14) {
+          score += 3;
+        }
+      } else {
+        // No interactions ever recorded - add penalty
+        score += 3;
+      }
+    }
+
+    return Math.min(score, 20); // Cap at 20
+  }
+
+  // Helper function to calculate days since a date
+  static getDaysSince(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   }
 
   // Create a new stakeholder
@@ -57,7 +85,8 @@ class Stakeholder {
   static update(id, data) {
     const { name, role, power, influence, engagement_status, owner, preferred_channel, notes } = data;
 
-    const riskScore = this.calculateRiskScore(power, influence, engagement_status);
+    // Recalculate risk score with update gap check
+    const riskScore = this.calculateRiskScore(power, influence, engagement_status, id);
 
     const stmt = db.prepare(`
       UPDATE stakeholders
@@ -94,14 +123,36 @@ class Stakeholder {
     return { ...stakeholder, interactions };
   }
 
-  // Get high-risk stakeholders (risk score > 5)
+  // Get high-risk stakeholders (risk score > 12 out of 20)
   static findHighRisk(projectId) {
     const stmt = db.prepare(`
       SELECT * FROM stakeholders
-      WHERE project_id = ? AND risk_score > 5
+      WHERE project_id = ? AND risk_score > 12
       ORDER BY risk_score DESC
     `);
     return stmt.all(projectId);
+  }
+
+  // Recalculate risk score for a stakeholder (useful after logging interactions)
+  static recalculateRisk(stakeholderId) {
+    const stakeholder = this.findById(stakeholderId);
+    if (!stakeholder) return null;
+
+    const newRiskScore = this.calculateRiskScore(
+      stakeholder.power,
+      stakeholder.influence,
+      stakeholder.engagement_status,
+      stakeholderId
+    );
+
+    const stmt = db.prepare(`
+      UPDATE stakeholders
+      SET risk_score = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(newRiskScore, stakeholderId);
+    return this.findById(stakeholderId);
   }
 }
 

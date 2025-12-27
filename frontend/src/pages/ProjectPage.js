@@ -77,9 +77,10 @@ function ProjectPage() {
   }
 
   function getRiskLevel(score) {
-    if (score >= 7) return 'high';
-    if (score >= 4) return 'medium';
-    return 'low';
+    // Score is out of 20
+    if (score >= 14) return 'high';      // 70%+ is high risk
+    if (score >= 8) return 'medium';     // 40-69% is medium risk
+    return 'low';                         // <40% is low risk
   }
 
   if (loading) return <div className="loading">Loading...</div>;

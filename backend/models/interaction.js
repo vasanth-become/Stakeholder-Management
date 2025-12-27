@@ -1,4 +1,5 @@
 const db = require('../database/db');
+const Stakeholder = require('./stakeholder');
 
 class Interaction {
   // Log a new interaction
@@ -19,6 +20,9 @@ class Interaction {
       outcome,
       follow_up_needed ? 1 : 0
     );
+
+    // Recalculate stakeholder risk score after logging interaction
+    Stakeholder.recalculateRisk(stakeholderId);
 
     return this.findById(result.lastInsertRowid);
   }
