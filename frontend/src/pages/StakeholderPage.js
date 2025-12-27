@@ -101,7 +101,12 @@ function StakeholderPage() {
       <div className="card stakeholder-details">
         <div className="stakeholder-header">
           <div>
-            <h1>{stakeholder.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+              <h1>{stakeholder.name}</h1>
+              {stakeholder.risk_score >= 12 && (
+                <span className="badge badge-at-risk">AT RISK</span>
+              )}
+            </div>
             <p className="text-muted">{stakeholder.role || 'No role specified'}</p>
           </div>
           <div className={`risk-score-large risk-${riskLevel}`}>

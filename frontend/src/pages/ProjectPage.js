@@ -231,8 +231,15 @@ function ProjectPage() {
               </thead>
               <tbody>
                 {stakeholders.map(stakeholder => (
-                  <tr key={stakeholder.id}>
-                    <td><strong>{stakeholder.name}</strong></td>
+                  <tr key={stakeholder.id} className={stakeholder.risk_score >= 12 ? 'row-at-risk' : ''}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <strong>{stakeholder.name}</strong>
+                        {stakeholder.risk_score >= 12 && (
+                          <span className="badge badge-at-risk">AT RISK</span>
+                        )}
+                      </div>
+                    </td>
                     <td>{stakeholder.role || '-'}</td>
                     <td>{stakeholder.power}/5</td>
                     <td>{stakeholder.influence}/5</td>
@@ -243,7 +250,7 @@ function ProjectPage() {
                     </td>
                     <td>
                       <span className={`risk-badge risk-${getRiskLevel(stakeholder.risk_score)}`}>
-                        {stakeholder.risk_score}
+                        {stakeholder.risk_score}/20
                       </span>
                     </td>
                     <td>

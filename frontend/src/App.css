@@ -79,6 +79,23 @@
   color: #2d3748;
 }
 
+.card-at-risk {
+  border: 2px solid #fed7d7;
+  background: linear-gradient(to bottom, #fff5f5 0%, white 100%);
+}
+
+.card-at-risk .card-header {
+  border-bottom-color: #feb2b2;
+}
+
+.at-risk-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
 /* Buttons */
 .btn {
   padding: 0.5rem 1rem;
@@ -223,6 +240,18 @@
   border: 1px solid #f39c12;
 }
 
+.badge-at-risk {
+  background: linear-gradient(135deg, #fc8181 0%, #c53030 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 14px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(197, 48, 48, 0.3);
+}
+
 /* Stakeholder List */
 .stakeholder-list {
   display: flex;
@@ -244,6 +273,29 @@
 .stakeholder-item:hover {
   border-color: #667eea;
   background: #f7fafc;
+}
+
+.stakeholder-item.stakeholder-at-risk {
+  border-left: 4px solid #c53030;
+  background: linear-gradient(to right, #fff5f5 0%, white 100%);
+}
+
+.stakeholder-item.stakeholder-at-risk:hover {
+  border-left-color: #c53030;
+  border-color: #fc8181;
+  background: linear-gradient(to right, #fff5f5 0%, #fffafa 100%);
+  box-shadow: 0 2px 8px rgba(197, 48, 48, 0.15);
+}
+
+.stakeholder-header-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.stakeholder-header-line h3 {
+  margin-bottom: 0;
 }
 
 .stakeholder-info h3 {
@@ -423,6 +475,15 @@ td {
 
 tbody tr:hover {
   background: #f7fafc;
+}
+
+tbody tr.row-at-risk {
+  background: linear-gradient(to right, #fff5f5 0%, white 100%);
+  border-left: 3px solid #fc8181;
+}
+
+tbody tr.row-at-risk:hover {
+  background: linear-gradient(to right, #fff5f5 0%, #fffafa 100%);
 }
 
 /* Page Headers */

@@ -123,14 +123,31 @@ class Stakeholder {
     return { ...stakeholder, interactions };
   }
 
-  // Get high-risk stakeholders (risk score > 12 out of 20)
+  // Get high-risk stakeholders (risk score >= 12 out of 20)
   static findHighRisk(projectId) {
     const stmt = db.prepare(`
       SELECT * FROM stakeholders
-      WHERE project_id = ? AND risk_score > 12
+      WHERE project_id = ? AND risk_score >= 12
       ORDER BY risk_score DESC
     `);
     return stmt.all(projectId);
+  }
+
+  // Get all high-risk stakeholders across all projects
+  static findAllHighRisk() {
+    const stmt = db.prepare(`
+      SELECT s.*, p.name as project_name
+      FROM stakeholders s
+      JOIN projects p ON s.project_id = p.id
+      WHERE s.risk_score >= 12
+      ORDER BY s.risk_score DESC
+    `);
+    return stmt.all();
+  }
+
+  // Check if a stakeholder is at risk
+  static isAtRisk(riskScore) {
+    return riskScore >= 12;
   }
 
   // Recalculate risk score for a stakeholder (useful after logging interactions)

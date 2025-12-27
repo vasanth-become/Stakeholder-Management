@@ -47,6 +47,8 @@ export const stakeholderAPI = {
 
   getHighRisk: (projectId) => apiCall(`/stakeholders/project/${projectId}/high-risk`),
 
+  getAllHighRisk: () => apiCall('/stakeholders/high-risk/all'),
+
   getById: (id) => apiCall(`/stakeholders/${id}`),
 
   getWithInteractions: (id) => apiCall(`/stakeholders/${id}/with-interactions`),

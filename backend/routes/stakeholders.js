@@ -22,6 +22,16 @@ router.get('/project/:projectId/high-risk', (req, res) => {
   }
 });
 
+// GET all high-risk stakeholders (AT RISK - score >= 12)
+router.get('/high-risk/all', (req, res) => {
+  try {
+    const stakeholders = Stakeholder.findAllHighRisk();
+    res.json(stakeholders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET single stakeholder by ID
 router.get('/:id', (req, res) => {
   try {
