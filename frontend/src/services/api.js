@@ -53,6 +53,8 @@ export const stakeholderAPI = {
 
   getWithInteractions: (id) => apiCall(`/stakeholders/${id}/with-interactions`),
 
+  getSuggestions: (id) => apiCall(`/stakeholders/${id}/suggestions`),
+
   create: (data) => apiCall('/stakeholders', {
     method: 'POST',
     body: JSON.stringify(data),

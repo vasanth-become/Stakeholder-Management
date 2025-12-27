@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Stakeholder = require('../models/stakeholder');
+const SuggestionEngine = require('../models/suggestionEngine');
 
 // GET all stakeholders for a project
 router.get('/project/:projectId', (req, res) => {
@@ -53,6 +54,25 @@ router.get('/:id/with-interactions', (req, res) => {
       return res.status(404).json({ error: 'Stakeholder not found' });
     }
     res.json(stakeholder);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET AI suggestions for stakeholder
+router.get('/:id/suggestions', (req, res) => {
+  try {
+    const stakeholder = Stakeholder.findByIdWithInteractions(req.params.id);
+    if (!stakeholder) {
+      return res.status(404).json({ error: 'Stakeholder not found' });
+    }
+
+    const suggestions = SuggestionEngine.generateSuggestions(
+      stakeholder,
+      stakeholder.interactions || []
+    );
+
+    res.json(suggestions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

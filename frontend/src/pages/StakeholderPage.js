@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { stakeholderAPI, interactionAPI } from '../services/api';
+import AISuggestions from '../components/AISuggestions';
 
 function StakeholderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [stakeholder, setStakeholder] = useState(null);
   const [interactions, setInteractions] = useState([]);
+  const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddInteraction, setShowAddInteraction] = useState(false);
 
@@ -27,14 +30,22 @@ function StakeholderPage() {
   async function loadData() {
     try {
       setLoading(true);
+      setSuggestionsLoading(true);
+
       const stakeholderData = await stakeholderAPI.getWithInteractions(id);
       setStakeholder(stakeholderData);
       setInteractions(stakeholderData.interactions || []);
+
+      // Load AI suggestions
+      const suggestionsData = await stakeholderAPI.getSuggestions(id);
+      setSuggestions(suggestionsData);
+
       setError(null);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setSuggestionsLoading(false);
     }
   }
 
@@ -158,6 +169,9 @@ function StakeholderPage() {
           </div>
         )}
       </div>
+
+      {/* AI Suggestions */}
+      <AISuggestions suggestions={suggestions} loading={suggestionsLoading} />
 
       {/* Interactions Card */}
       <div className="card">
