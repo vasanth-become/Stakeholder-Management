@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navigation from './components/Navigation';
+import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ProjectPage from './pages/ProjectPage';
 import StakeholderPage from './pages/StakeholderPage';
@@ -10,12 +10,16 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <Navigation />
+        <Sidebar />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/project/:id" element={<ProjectPage />} />
             <Route path="/stakeholder/:id" element={<StakeholderPage />} />
+            <Route path="/projects" element={<Dashboard />} />
+            <Route path="/stakeholders" element={<Dashboard />} />
+            <Route path="/reports" element={<Dashboard />} />
+            <Route path="/settings" element={<Dashboard />} />
           </Routes>
         </main>
       </div>
