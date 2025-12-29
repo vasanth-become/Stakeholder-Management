@@ -3,6 +3,16 @@ const router = express.Router();
 const Stakeholder = require('../models/stakeholder');
 const SuggestionEngine = require('../models/suggestionEngine');
 
+// GET all stakeholders across all projects
+router.get('/all', (req, res) => {
+  try {
+    const stakeholders = Stakeholder.findAll();
+    res.json(stakeholders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET all stakeholders for a project
 router.get('/project/:projectId', (req, res) => {
   try {

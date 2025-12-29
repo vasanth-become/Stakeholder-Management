@@ -133,6 +133,17 @@ class Stakeholder {
     return stmt.all(projectId);
   }
 
+  // Get all stakeholders across all projects
+  static findAll() {
+    const stmt = db.prepare(`
+      SELECT s.*, p.name as project_name
+      FROM stakeholders s
+      JOIN projects p ON s.project_id = p.id
+      ORDER BY s.name ASC
+    `);
+    return stmt.all();
+  }
+
   // Get all high-risk stakeholders across all projects
   static findAllHighRisk() {
     const stmt = db.prepare(`

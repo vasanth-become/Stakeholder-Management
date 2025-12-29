@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { projectAPI, stakeholderAPI } from '../services/api';
+import { projectAPI, stakeholderAPI, interactionAPI } from '../services/api';
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
+  const [allStakeholders, setAllStakeholders] = useState([]);
   const [highRiskStakeholders, setHighRiskStakeholders] = useState([]);
+  const [stakeholderInteractions, setStakeholderInteractions] = useState({});
+  const [followUpActions, setFollowUpActions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showNewProject, setShowNewProject] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDesc, setNewProjectDesc] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,13 +19,32 @@ function Dashboard() {
   async function loadData() {
     try {
       setLoading(true);
-      const projectsData = await projectAPI.getAll();
+      const [projectsData, stakeholdersData, atRiskStakeholders, followUpData] = await Promise.all([
+        projectAPI.getAll(),
+        stakeholderAPI.getAll(),
+        stakeholderAPI.getAllHighRisk(),
+        interactionAPI.getFollowUp(),
+      ]);
+
       setProjects(projectsData);
-
-      // Get all high-risk stakeholders (AT RISK: score >= 12)
-      const atRiskStakeholders = await stakeholderAPI.getAllHighRisk();
-
+      setAllStakeholders(stakeholdersData);
       setHighRiskStakeholders(atRiskStakeholders);
+      setFollowUpActions(followUpData);
+
+      // Fetch last interaction for each high-risk stakeholder
+      const interactions = {};
+      for (const stakeholder of atRiskStakeholders) {
+        try {
+          const stakeholderInteractions = await interactionAPI.getByStakeholder(stakeholder.id);
+          if (stakeholderInteractions.length > 0) {
+            interactions[stakeholder.id] = stakeholderInteractions[0];
+          }
+        } catch (err) {
+          // No interactions for this stakeholder
+        }
+      }
+      setStakeholderInteractions(interactions);
+
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -34,142 +53,198 @@ function Dashboard() {
     }
   }
 
-  async function handleCreateProject(e) {
-    e.preventDefault();
-    try {
-      await projectAPI.create({
-        name: newProjectName,
-        description: newProjectDesc,
-        status: 'active'
-      });
-      setNewProjectName('');
-      setNewProjectDesc('');
-      setShowNewProject(false);
-      loadData();
-    } catch (err) {
-      alert('Error creating project: ' + err.message);
-    }
-  }
-
   function getRiskLevel(score) {
-    // Score is out of 20
-    if (score >= 14) return 'high';      // 70%+ is high risk
-    if (score >= 8) return 'medium';     // 40-69% is medium risk
-    return 'low';                         // <40% is low risk
+    if (score >= 14) return 'high';
+    if (score >= 8) return 'medium';
+    return 'low';
   }
 
-  if (loading) return <div className="loading">Loading...</div>;
+  function formatDate(dateString) {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 1000));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays} days ago`;
+    if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  }
+
+  if (loading) return <div className="loading">Loading dashboard...</div>;
   if (error) return <div className="error">Error: {error}</div>;
+
+  const activeProjects = projects.filter(p => p.status === 'active').length;
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Stakeholder Radar Dashboard</h1>
+        <h1>Dashboard</h1>
+        <p className="text-muted">Overview of your stakeholder management</p>
       </div>
 
-      <div className="dashboard-grid">
-        {/* Projects Section */}
-        <div className="card">
-          <div className="card-header">
-            <h2>Projects</h2>
-            <button onClick={() => setShowNewProject(!showNewProject)} className="btn btn-primary">
-              + New Project
-            </button>
+      {/* Stat Cards */}
+      <div className="stat-cards">
+        <div className="stat-card">
+          <div className="stat-icon">▢</div>
+          <div className="stat-content">
+            <div className="stat-value">{activeProjects}</div>
+            <div className="stat-label">Active Projects</div>
           </div>
+        </div>
 
-          {showNewProject && (
-            <form onSubmit={handleCreateProject} className="new-project-form">
-              <input
-                type="text"
-                placeholder="Project name"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                required
-              />
-              <textarea
-                placeholder="Description (optional)"
-                value={newProjectDesc}
-                onChange={(e) => setNewProjectDesc(e.target.value)}
-              />
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">Create</button>
-                <button type="button" onClick={() => setShowNewProject(false)} className="btn btn-secondary">
-                  Cancel
+        <div className="stat-card">
+          <div className="stat-icon">◉</div>
+          <div className="stat-content">
+            <div className="stat-value">{allStakeholders.length}</div>
+            <div className="stat-label">Total Stakeholders</div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-card-alert">
+          <div className="stat-icon">⚠</div>
+          <div className="stat-content">
+            <div className="stat-value">{highRiskStakeholders.length}</div>
+            <div className="stat-label">High Risk Stakeholders</div>
+          </div>
+        </div>
+      </div>
+
+      {/* High Risk Stakeholders Table */}
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <h2>High Risk Stakeholders</h2>
+            <p className="text-muted">Stakeholders requiring immediate attention (risk score ≥12)</p>
+          </div>
+        </div>
+
+        {highRiskStakeholders.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">✓</div>
+            <p>No high-risk stakeholders</p>
+            <p className="text-muted">All stakeholders are being managed well</p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="stakeholder-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Risk Score</th>
+                  <th>Last Interaction</th>
+                  <th>Owner</th>
+                </tr>
+              </thead>
+              <tbody>
+                {highRiskStakeholders.map(stakeholder => (
+                  <tr
+                    key={stakeholder.id}
+                    onClick={() => navigate(`/stakeholder/${stakeholder.id}`)}
+                    className="clickable-row"
+                  >
+                    <td>
+                      <div className="stakeholder-name">
+                        <strong>{stakeholder.name}</strong>
+                        <span className="project-tag">{stakeholder.project_name}</span>
+                      </div>
+                    </td>
+                    <td>{stakeholder.role}</td>
+                    <td>
+                      <span className={`risk-badge risk-${getRiskLevel(stakeholder.risk_score)}`}>
+                        {stakeholder.risk_score}/20
+                      </span>
+                    </td>
+                    <td className="text-muted">
+                      {stakeholderInteractions[stakeholder.id]
+                        ? formatDate(stakeholderInteractions[stakeholder.id].date)
+                        : 'No interactions'}
+                    </td>
+                    <td>{stakeholder.owner || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* AI Suggested Actions */}
+      <div className="card ai-actions-panel">
+        <div className="card-header">
+          <div>
+            <h2>🤖 Suggested Actions</h2>
+            <p className="text-muted">AI-powered recommendations based on your stakeholder data</p>
+          </div>
+        </div>
+
+        <div className="actions-grid">
+          {followUpActions.length > 0 && (
+            <div className="action-card action-card-priority">
+              <div className="action-icon">📝</div>
+              <div className="action-content">
+                <h3>Follow-up Required</h3>
+                <p>{followUpActions.length} interaction{followUpActions.length !== 1 ? 's' : ''} marked for follow-up</p>
+                <button className="action-link" onClick={() => navigate('/stakeholders')}>
+                  View all →
                 </button>
               </div>
-            </form>
+            </div>
           )}
 
-          <div className="project-list">
-            {projects.length === 0 ? (
-              <p className="empty-state">No projects yet. Create one to get started!</p>
-            ) : (
-              projects.map(project => (
-                <div
-                  key={project.id}
-                  className="project-item"
-                  onClick={() => navigate(`/project/${project.id}`)}
-                >
-                  <div className="project-info">
-                    <h3>{project.name}</h3>
-                    <p>{project.description || 'No description'}</p>
-                    <span className={`badge badge-${project.status}`}>{project.status}</span>
-                  </div>
-                  <div className="project-arrow">→</div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* High Risk Stakeholders Section */}
-        <div className="card card-at-risk">
-          <div className="card-header">
-            <div>
-              <h2>High Risk Stakeholders</h2>
-              <p className="at-risk-subtitle">
-                <span className="badge badge-at-risk">AT RISK</span>
-                {highRiskStakeholders.length > 0 && (
-                  <span className="text-muted"> • {highRiskStakeholders.length} stakeholder{highRiskStakeholders.length !== 1 ? 's' : ''} with score ≥12</span>
-                )}
-              </p>
+          {highRiskStakeholders.length > 0 && (
+            <div className="action-card">
+              <div className="action-icon">⚠️</div>
+              <div className="action-content">
+                <h3>Address High-Risk Stakeholders</h3>
+                <p>Review and create mitigation strategies for {highRiskStakeholders.length} at-risk stakeholder{highRiskStakeholders.length !== 1 ? 's' : ''}</p>
+                <button className="action-link" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                  View table above →
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="stakeholder-list">
-            {highRiskStakeholders.length === 0 ? (
-              <p className="empty-state">✓ No high-risk stakeholders - All stakeholders are being managed well!</p>
-            ) : (
-              highRiskStakeholders.map(stakeholder => (
-                <div
-                  key={stakeholder.id}
-                  className="stakeholder-item stakeholder-at-risk"
-                  onClick={() => navigate(`/stakeholder/${stakeholder.id}`)}
-                >
-                  <div className="stakeholder-info">
-                    <div className="stakeholder-header-line">
-                      <h3>{stakeholder.name}</h3>
-                      <span className="badge badge-at-risk">AT RISK</span>
-                    </div>
-                    <p className="text-muted">{stakeholder.project_name} • {stakeholder.role}</p>
-                    <div className="stakeholder-metrics">
-                      <span>Power: {stakeholder.power}/5</span>
-                      <span>Influence: {stakeholder.influence}/5</span>
-                      <span className={`badge badge-${stakeholder.engagement_status}`}>
-                        {stakeholder.engagement_status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="risk-score">
-                    <div className={`risk-badge risk-${getRiskLevel(stakeholder.risk_score)}`}>
-                      {stakeholder.risk_score}/20
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {highRiskStakeholders.some(s =>
+            !stakeholderInteractions[s.id] ||
+            new Date() - new Date(stakeholderInteractions[s.id]?.date) > 14 * 24 * 60 * 60 * 1000
+          ) && (
+            <div className="action-card">
+              <div className="action-icon">📅</div>
+              <div className="action-content">
+                <h3>Schedule Check-ins</h3>
+                <p>Some high-risk stakeholders haven't been contacted recently</p>
+                <button className="action-link" onClick={() => navigate('/stakeholders')}>
+                  Review →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeProjects > 0 && (
+            <div className="action-card">
+              <div className="action-icon">🎯</div>
+              <div className="action-content">
+                <h3>Update Project Status</h3>
+                <p>Keep your project information current for better insights</p>
+                <button className="action-link" onClick={() => navigate('/projects')}>
+                  View projects →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {followUpActions.length === 0 && highRiskStakeholders.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">✨</div>
+            <p>All caught up!</p>
+            <p className="text-muted">No urgent actions required at this time</p>
+          </div>
+        )}
       </div>
     </div>
   );
