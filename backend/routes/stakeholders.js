@@ -43,51 +43,6 @@ router.get('/high-risk/all', (req, res) => {
   }
 });
 
-// GET single stakeholder by ID
-router.get('/:id', (req, res) => {
-  try {
-    const stakeholder = Stakeholder.findById(req.params.id);
-    if (!stakeholder) {
-      return res.status(404).json({ error: 'Stakeholder not found' });
-    }
-    res.json(stakeholder);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET stakeholder with interactions
-router.get('/:id/with-interactions', (req, res) => {
-  try {
-    const stakeholder = Stakeholder.findByIdWithInteractions(req.params.id);
-    if (!stakeholder) {
-      return res.status(404).json({ error: 'Stakeholder not found' });
-    }
-    res.json(stakeholder);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET AI suggestions for stakeholder
-router.get('/:id/suggestions', (req, res) => {
-  try {
-    const stakeholder = Stakeholder.findByIdWithInteractions(req.params.id);
-    if (!stakeholder) {
-      return res.status(404).json({ error: 'Stakeholder not found' });
-    }
-
-    const suggestions = SuggestionEngine.generateSuggestions(
-      stakeholder,
-      stakeholder.interactions || []
-    );
-
-    res.json(suggestions);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // POST create new stakeholder
 router.post('/', (req, res) => {
   try {
@@ -155,7 +110,7 @@ router.delete('/:id', (req, res) => {
   }
 });
 
-// GET calculate risk score (utility endpoint)
+// POST calculate risk score (utility endpoint)
 router.post('/calculate-risk', (req, res) => {
   try {
     const { power, influence, engagement_status } = req.body;
@@ -170,6 +125,54 @@ router.post('/calculate-risk', (req, res) => {
 
     const riskScore = Stakeholder.calculateRiskScore(power, influence, engagement_status);
     res.json({ risk_score: parseFloat(riskScore) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET stakeholder with interactions
+// IMPORTANT: This must come before /:id to match first
+router.get('/:id/with-interactions', (req, res) => {
+  try {
+    const stakeholder = Stakeholder.findByIdWithInteractions(req.params.id);
+    if (!stakeholder) {
+      return res.status(404).json({ error: 'Stakeholder not found' });
+    }
+    res.json(stakeholder);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET AI suggestions for stakeholder
+// IMPORTANT: This must come before /:id to match first
+router.get('/:id/suggestions', (req, res) => {
+  try {
+    const stakeholder = Stakeholder.findByIdWithInteractions(req.params.id);
+    if (!stakeholder) {
+      return res.status(404).json({ error: 'Stakeholder not found' });
+    }
+
+    const suggestions = SuggestionEngine.generateSuggestions(
+      stakeholder,
+      stakeholder.interactions || []
+    );
+
+    res.json(suggestions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET single stakeholder by ID
+// IMPORTANT: Keep this at the bottom - it's a catch-all route
+router.get('/:id', (req, res) => {
+  try {
+    const stakeholder = Stakeholder.findById(req.params.id);
+    if (!stakeholder) {
+      return res.status(404).json({ error: 'Stakeholder not found' });
+    }
+    res.json(stakeholder);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
