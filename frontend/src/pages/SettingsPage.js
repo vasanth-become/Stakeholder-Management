@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InviteUserModal from '../components/InviteUserModal';
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('workspace');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -731,33 +733,40 @@ function SettingsPage() {
                 <p className="text-muted">Connect your favorite tools and services</p>
               </div>
 
-              <div className="integrations-grid">
-                <div className="integration-card">
-                  <div className="integration-icon">💬</div>
-                  <h4>Slack</h4>
-                  <p className="text-muted">Get notifications and updates in your Slack workspace</p>
-                  <span className="badge-coming-soon">Coming Soon</span>
-                </div>
-
-                <div className="integration-card">
-                  <div className="integration-icon">📧</div>
-                  <h4>Email</h4>
-                  <p className="text-muted">Sync stakeholder communications with your email</p>
-                  <span className="badge-coming-soon">Coming Soon</span>
-                </div>
-
-                <div className="integration-card">
-                  <div className="integration-icon">📋</div>
-                  <h4>Jira</h4>
-                  <p className="text-muted">Link stakeholders to Jira issues and projects</p>
-                  <span className="badge-coming-soon">Coming Soon</span>
-                </div>
-
-                <div className="integration-card">
-                  <div className="integration-icon">📊</div>
-                  <h4>Google Sheets</h4>
-                  <p className="text-muted">Export and sync data with Google Sheets</p>
-                  <span className="badge-coming-soon">Coming Soon</span>
+              <div className="settings-card">
+                <div className="integrations-redirect">
+                  <div className="redirect-icon">🔌</div>
+                  <div className="redirect-content">
+                    <h3>Manage Integrations</h3>
+                    <p className="text-muted">
+                      Connect Slack, Gmail, Google Sheets, and Jira to enhance your stakeholder management workflow.
+                    </p>
+                    <div className="integration-features-preview">
+                      <div className="feature-preview-item">
+                        <span className="feature-icon">💬</span>
+                        <span>Slack notifications</span>
+                      </div>
+                      <div className="feature-preview-item">
+                        <span className="feature-icon">📧</span>
+                        <span>Gmail tracking</span>
+                      </div>
+                      <div className="feature-preview-item">
+                        <span className="feature-icon">📊</span>
+                        <span>Sheets export</span>
+                      </div>
+                      <div className="feature-preview-item">
+                        <span className="feature-icon">📋</span>
+                        <span>Jira linking</span>
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => navigate('/integrations')}
+                      style={{ marginTop: '1.5rem' }}
+                    >
+                      Go to Integrations →
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

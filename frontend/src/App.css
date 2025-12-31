@@ -4291,3 +4291,64 @@ tbody tr:last-child td:last-child {
 .export-card .btn {
   margin-top: auto;
 }
+
+/* Integrations Redirect in Settings */
+.integrations-redirect {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  padding: 1rem;
+}
+
+.redirect-icon {
+  font-size: 4rem;
+  flex-shrink: 0;
+}
+
+.redirect-content {
+  flex: 1;
+}
+
+.redirect-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.redirect-content p {
+  font-size: 1rem;
+  color: #6B7280;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.integration-features-preview {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .integration-features-preview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+  font-size: 0.938rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+}
