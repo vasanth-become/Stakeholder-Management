@@ -5,26 +5,33 @@ export function BarChart({ data, height = 200 }) {
   if (!data || data.length === 0) return null;
 
   const maxValue = Math.max(...data.map(d => d.value));
+  const hasValues = maxValue > 0;
 
   return (
-    <div className="simple-chart" style={{ height: `${height}px` }}>
-      <div className="chart-bars">
-        {data.map((item, index) => (
-          <div key={index} className="chart-bar-container">
-            <div className="chart-bar-wrapper">
-              <div
-                className="chart-bar"
-                style={{
-                  height: `${(item.value / maxValue) * 100}%`,
-                  background: item.color || '#4F46E5'
-                }}
-              >
-                <span className="chart-bar-value">{item.value}</span>
+    <div className="simple-chart">
+      <div className="chart-bars" style={{ height: `${height}px` }}>
+        {data.map((item, index) => {
+          const barHeight = hasValues ? (item.value / maxValue) * 100 : 0;
+          return (
+            <div key={index} className="chart-bar-container">
+              <div className="chart-bar-wrapper">
+                <div
+                  className="chart-bar"
+                  style={{
+                    height: `${barHeight}%`,
+                    background: item.color || '#4F46E5',
+                    minHeight: item.value > 0 ? '50px' : '0'
+                  }}
+                >
+                  {item.value > 0 && (
+                    <span className="chart-bar-value">{item.value}</span>
+                  )}
+                </div>
               </div>
+              <span className="chart-bar-label">{item.label}</span>
             </div>
-            <span className="chart-bar-label">{item.label}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
