@@ -9,6 +9,7 @@ import StakeholderProfilePage from './pages/StakeholderProfilePage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import OAuthCallback from './pages/OAuthCallback';
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/integrations" element={<IntegrationsPage />} />
+            <Route path="/integrations/callback" element={<OAuthCallback />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>

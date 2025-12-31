@@ -1,18 +1,33 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 // Import routes
 const projectRoutes = require('./routes/projects');
 const stakeholderRoutes = require('./routes/stakeholders');
 const interactionRoutes = require('./routes/interactions');
+const authRoutes = require('./routes/auth');
+
+// Import middleware
+const { oauthErrorHandler } = require('./middleware/oauth');
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  next();
+});
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -20,16 +35,25 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/projects', projectRoutes);
 app.use('/api/stakeholders', stakeholderRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Stakeholder Radar API is running' });
 });
 
-// Error handling middleware
+// OAuth error handling middleware
+app.use(oauthErrorHandler());
+
+// General error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] ERROR:`, err.stack);
+
+  res.status(err.status || 500).json({
+    error: err.message || 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 // Start server

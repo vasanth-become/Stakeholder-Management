@@ -56,6 +56,25 @@ function initializeDatabase() {
     )
   `);
 
+  // OAuth tokens table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS oauth_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      provider TEXT NOT NULL CHECK(provider IN ('slack', 'google', 'jira')),
+      access_token TEXT NOT NULL,
+      refresh_token TEXT,
+      token_type TEXT DEFAULT 'Bearer',
+      expires_at DATETIME,
+      scopes TEXT,
+      metadata TEXT,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, provider)
+    )
+  `);
+
   console.log('Database initialized successfully');
 }
 

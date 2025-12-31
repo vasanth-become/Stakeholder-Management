@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SlackIntegrationModal from '../components/SlackIntegrationModal';
 import GmailIntegrationModal from '../components/GmailIntegrationModal';
 import SheetsIntegrationModal from '../components/SheetsIntegrationModal';
 import JiraIntegrationModal from '../components/JiraIntegrationModal';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 function IntegrationsPage() {
   const [integrations, setIntegrations] = useState({
@@ -54,40 +56,79 @@ function IntegrationsPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Mock OAuth connection
-  const handleConnect = (integrationId) => {
-    // Simulate OAuth flow
-    setTimeout(() => {
-      setIntegrations(prev => ({
-        ...prev,
-        [integrationId]: {
-          ...prev[integrationId],
-          connected: true,
-          ...(integrationId === 'slack' && { workspaceName: 'My Workspace' }),
-          ...(integrationId === 'gmail' && { email: 'user@company.com' }),
-          ...(integrationId === 'sheets' && { email: 'user@company.com' }),
-          ...(integrationId === 'jira' && { siteName: 'company.atlassian.net' }),
-          settings: {}
-        }
-      }));
-      showSuccessToast(`${integrations[integrationId].name} connected successfully!`);
-    }, 500);
+  // Load OAuth connection status on mount
+  useEffect(() => {
+    fetchOAuthStatus();
+  }, []);
+
+  const fetchOAuthStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/connections?userId=default-user`);
+      if (response.ok) {
+        const data = await response.json();
+
+        // Update integrations with connection status
+        const connections = data.connections || [];
+        setIntegrations(prev => {
+          const updated = { ...prev };
+
+          connections.forEach(conn => {
+            if (updated[conn.provider]) {
+              updated[conn.provider] = {
+                ...updated[conn.provider],
+                connected: !conn.isExpired,
+                scopes: conn.scopes,
+                settings: conn.metadata || {}
+              };
+            }
+          });
+
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching OAuth status:', error);
+    }
   };
 
-  const handleDisconnect = (integrationId) => {
-    if (window.confirm(`Are you sure you want to disconnect ${integrations[integrationId].name}?`)) {
-      setIntegrations(prev => ({
-        ...prev,
-        [integrationId]: {
-          ...prev[integrationId],
-          connected: false,
-          workspaceName: null,
-          email: null,
-          siteName: null,
-          settings: null
+  // Real OAuth connection
+  const handleConnect = (integrationId) => {
+    // Redirect to OAuth backend
+    window.location.href = `${API_URL}/auth/${integrationId}?userId=default-user`;
+  };
+
+  const handleDisconnect = async (integrationId) => {
+    if (!window.confirm(`Are you sure you want to disconnect ${integrations[integrationId].name}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/disconnect/${integrationId}?userId=default-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      }));
-      showSuccessToast(`${integrations[integrationId].name} disconnected`);
+      });
+
+      if (response.ok) {
+        setIntegrations(prev => ({
+          ...prev,
+          [integrationId]: {
+            ...prev[integrationId],
+            connected: false,
+            workspaceName: null,
+            email: null,
+            siteName: null,
+            settings: null
+          }
+        }));
+        showSuccessToast(`${integrations[integrationId].name} disconnected`);
+      } else {
+        throw new Error('Failed to disconnect');
+      }
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+      alert(`Failed to disconnect ${integrations[integrationId].name}`);
     }
   };
 
