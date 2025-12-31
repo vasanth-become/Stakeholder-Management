@@ -4,8 +4,8 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
-import ProjectPage from './pages/ProjectPage';
-import StakeholderPage from './pages/StakeholderPage';
+import StakeholdersListPage from './pages/StakeholdersListPage';
+import StakeholderProfilePage from './pages/StakeholderProfilePage';
 import './App.css';
 
 function App() {
@@ -18,8 +18,8 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/project/:id" element={<ProjectDetailPage />} />
-            <Route path="/stakeholder/:id" element={<StakeholderPage />} />
-            <Route path="/stakeholders" element={<Dashboard />} />
+            <Route path="/stakeholders" element={<StakeholdersListPage />} />
+            <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
             <Route path="/reports" element={<Dashboard />} />
             <Route path="/settings" element={<Dashboard />} />
           </Routes>
