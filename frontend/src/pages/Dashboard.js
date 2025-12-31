@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { projectAPI, stakeholderAPI, interactionAPI } from '../services/api';
+import CreateProjectModal from '../components/CreateProjectModal';
+import Toast from '../components/Toast';
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -10,6 +12,8 @@ function Dashboard() {
   const [followUpActions, setFollowUpActions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +77,26 @@ function Dashboard() {
     return `${Math.floor(diffDays / 30)} months ago`;
   }
 
+  function handleProjectCreated(newProject) {
+    setToast({
+      show: true,
+      message: 'Project created successfully 🎉',
+      type: 'success',
+    });
+
+    // Reload data to reflect new project
+    loadData();
+
+    // Navigate to project detail page after a brief delay
+    setTimeout(() => {
+      navigate(`/project/${newProject.id}`);
+    }, 1000);
+  }
+
+  function closeToast() {
+    setToast({ show: false, message: '', type: 'success' });
+  }
+
   if (loading) return <div className="loading">Loading dashboard...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -81,8 +105,16 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p className="text-muted">Overview of your stakeholder management</p>
+        <div>
+          <h1>Dashboard</h1>
+          <p className="text-muted">Overview of your stakeholder management</p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="btn btn-primary"
+        >
+          + Create Project
+        </button>
       </div>
 
       {/* Stat Cards */}
@@ -246,6 +278,21 @@ function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleProjectCreated}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={closeToast}
+      />
     </div>
   );
 }
