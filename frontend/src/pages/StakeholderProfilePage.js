@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { stakeholderAPI, interactionAPI } from '../services/api';
 import Tabs from '../components/Tabs';
 import Toast from '../components/Toast';
+import AIAssistantPanel from '../components/AIAssistantPanel';
+import AIInsightsModal from '../components/AIInsightsModal';
+import { AIService } from '../utils/aiService';
 
 function StakeholderProfilePage() {
   const { id } = useParams();
@@ -16,6 +19,9 @@ function StakeholderProfilePage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddInteraction, setShowAddInteraction] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [aiInsights, setAiInsights] = useState(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const [interactionForm, setInteractionForm] = useState({
     type: 'meeting',
@@ -40,11 +46,26 @@ function StakeholderProfilePage() {
       setInteractions(stakeholderData.interactions || []);
       setSuggestions(suggestionsData);
       setError(null);
+
+      // Generate AI insights
+      generateAIInsights(stakeholderData, stakeholderData.interactions || []);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  function generateAIInsights(stakeholderData, interactionsData) {
+    if (!stakeholderData) return;
+
+    setAiLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      const insights = AIService.generateStakeholderInsights(stakeholderData, interactionsData);
+      setAiInsights(insights);
+      setAiLoading(false);
+    }, 500);
   }
 
   async function handleAddInteraction(e) {
@@ -240,6 +261,34 @@ function StakeholderProfilePage() {
                 </>
               )}
             </div>
+
+            {/* AI Insights Panel */}
+            <AIAssistantPanel
+              title="AI Relationship Insights"
+              insights={aiInsights ? {
+                summary: aiInsights.relationshipSummary,
+                items: aiInsights.communicationTips?.slice(0, 3) || [],
+                action: aiInsights.suggestedAction ? {
+                  title: aiInsights.suggestedAction.action,
+                  description: `${aiInsights.suggestedAction.timing} • ${aiInsights.suggestedAction.reason}`
+                } : null
+              } : null}
+              loading={aiLoading}
+              onRefresh={() => generateAIInsights(stakeholder, interactions)}
+            />
+
+            {/* View Full AI Insights Button */}
+            {aiInsights && !aiLoading && (
+              <div style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowAIModal(true)}
+                  style={{ width: '100%' }}
+                >
+                  ✨ View Full AI Insights & Strategy
+                </button>
+              </div>
+            )}
 
             {/* Quick Actions */}
             <div className="card">
@@ -472,6 +521,14 @@ function StakeholderProfilePage() {
         type={toast.type}
         isVisible={toast.show}
         onClose={closeToast}
+      />
+
+      {/* AI Insights Modal */}
+      <AIInsightsModal
+        isOpen={showAIModal}
+        onClose={() => setShowAIModal(false)}
+        stakeholder={stakeholder}
+        insights={aiInsights}
       />
     </div>
   );
