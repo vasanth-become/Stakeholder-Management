@@ -7,6 +7,7 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import StakeholdersListPage from './pages/StakeholdersListPage';
 import StakeholderProfilePage from './pages/StakeholderProfilePage';
 import ReportsPage from './pages/ReportsPage';
+import SettingsPage from './pages/SettingsPage';
 import './App.css';
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
             <Route path="/stakeholders" element={<StakeholdersListPage />} />
             <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
             <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<Dashboard />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
       </div>
