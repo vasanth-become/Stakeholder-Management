@@ -125,10 +125,10 @@ export function DonutChart({ data, centerLabel, centerValue }) {
             />
           );
         })}
-        <text x="50" y="45" textAnchor="middle" className="donut-center-value">
+        <text x="50" y="48" textAnchor="middle" className="donut-center-value">
           {centerValue}
         </text>
-        <text x="50" y="55" textAnchor="middle" className="donut-center-label">
+        <text x="50" y="56" textAnchor="middle" className="donut-center-label">
           {centerLabel}
         </text>
       </svg>
