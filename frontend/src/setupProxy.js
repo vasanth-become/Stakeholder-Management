@@ -6,7 +6,11 @@ module.exports = function(app) {
     createProxyMiddleware({
       target: 'http://localhost:3001',
       changeOrigin: true,
-      logLevel: 'debug'
+      secure: false,
+      logLevel: 'debug',
+      onProxyReq: (proxyReq, req, res) => {
+        console.log('[Proxy]', req.method, req.path, '->', proxyReq.path);
+      }
     })
   );
 };
