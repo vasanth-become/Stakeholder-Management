@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { projectAPI, stakeholderAPI } from '../services/api';
+import { triggerSuccessConfetti } from '../utils/confetti';
 
 /**
  * Main Onboarding Component
- * Multi-step wizard for new user onboarding
+ * Multi-step wizard for new user onboarding with keyboard shortcuts
  */
 function Onboarding() {
   const navigate = useNavigate();
@@ -28,6 +29,49 @@ function Onboarding() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [oauthConnected, setOauthConnected] = useState(false);
+
+  // Initialize onboarding on mount
+  useEffect(() => {
+    if (currentStep === 0 && !workspace.name) {
+      startOnboarding();
+    }
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        return;
+      }
+
+      // Enter key = Next (if not on welcome or success screen)
+      if (e.key === 'Enter' && currentStep > 0 && currentStep < 7) {
+        e.preventDefault();
+        // Trigger the continue action based on current step
+        if (currentStep === 1 && canProceedWorkspace()) {
+          nextStep();
+        } else if (currentStep === 2 || currentStep === 3) {
+          nextStep();
+        }
+      }
+
+      // Escape key = Back (if not on welcome screen)
+      if (e.key === 'Escape' && currentStep > 1 && currentStep < 7) {
+        e.preventDefault();
+        prevStep();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, workspace, nextStep, prevStep]);
+
+  // Helper to check if workspace step is complete
+  const canProceedWorkspace = () => {
+    return workspace.name && workspace.industry && workspace.teamSize;
+  };
 
   // Initialize onboarding on mount
   React.useEffect(() => {
@@ -224,7 +268,69 @@ function Onboarding() {
     );
   };
 
-  // ==================== STAGE 3: CREATE PROJECT ====================
+  // ==================== STAGE 3: CONNECT SLACK (OPTIONAL) ====================
+  const OAuthStep = () => {
+    const handleConnectSlack = () => {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      window.location.href = `${API_URL}/auth/slack?userId=default-user`;
+    };
+
+    const handleSkip = () => {
+      nextStep();
+    };
+
+    return (
+      <OnboardingLayout currentStep={currentStep}>
+        <div className="onboarding-card">
+          <div className="onboarding-header">
+            <h2>Connect your tools (optional)</h2>
+            <p className="text-muted">Get real-time notifications and stay in sync</p>
+          </div>
+
+          <div className="oauth-onboarding-options">
+            <div className="oauth-option-card">
+              <div className="oauth-option-header">
+                <span className="oauth-option-icon">💬</span>
+                <h3>Connect Slack</h3>
+              </div>
+              <p className="oauth-option-description">
+                Get instant alerts when stakeholders need attention, weekly summaries, and AI-powered insights directly in Slack.
+              </p>
+              <ul className="oauth-benefits-list">
+                <li>⚠️ Risk alerts in your channels</li>
+                <li>📊 Weekly project summaries</li>
+                <li>✨ AI suggestions when you need them</li>
+              </ul>
+              <button className="btn btn-primary" onClick={handleConnectSlack}>
+                Connect Slack
+              </button>
+            </div>
+
+            <div className="oauth-option-info">
+              <div className="info-box">
+                <span className="info-icon">ℹ️</span>
+                <div>
+                  <strong>You can always connect later</strong>
+                  <p>Find all integrations in Settings → Integrations</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="onboarding-actions">
+            <button className="btn btn-secondary" onClick={prevStep}>
+              Back
+            </button>
+            <button className="btn btn-text" onClick={handleSkip}>
+              Skip for now →
+            </button>
+          </div>
+        </div>
+      </OnboardingLayout>
+    );
+  };
+
+  // ==================== STAGE 4: CREATE PROJECT ====================
   const ProjectStep = () => {
     const [projectForm, setProjectForm] = useState({
       name: '',
@@ -508,8 +614,13 @@ function Onboarding() {
     );
   };
 
-  // ==================== STAGE 6: SUCCESS ====================
+  // ==================== STAGE 7: SUCCESS ====================
   const SuccessStep = () => {
+    // Trigger confetti on mount
+    useEffect(() => {
+      triggerSuccessConfetti();
+    }, []);
+
     const handleFinish = () => {
       completeOnboarding();
       navigate('/');
@@ -552,6 +663,7 @@ function Onboarding() {
     WelcomeStep,
     WorkspaceStep,
     RoleStep,
+    OAuthStep,
     ProjectStep,
     StakeholderStep,
     FirstValueStep,

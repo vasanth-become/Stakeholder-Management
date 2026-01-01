@@ -11,7 +11,7 @@ function OnboardingLayout({
   showStepper = true,
   showLogo = true
 }) {
-  const steps = ['Workspace', 'Role', 'Project', 'Stakeholder', 'Done'];
+  const steps = ['Workspace', 'Role', 'Connect', 'Project', 'Stakeholder', 'Done'];
 
   return (
     <div className="onboarding-container">
@@ -22,9 +22,9 @@ function OnboardingLayout({
         </div>
       )}
 
-      {showStepper && currentStep < 5 && (
+      {showStepper && currentStep > 0 && currentStep < 7 && (
         <div className="onboarding-stepper-container">
-          <ProgressStepper currentStep={currentStep} steps={steps} />
+          <ProgressStepper currentStep={currentStep - 1} steps={steps} />
         </div>
       )}
 
