@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { projectAPI, stakeholderAPI, interactionAPI } from '../services/api';
 import ReportCard from '../components/ReportCard';
-import { BarChart, LineChart, DonutChart, StatGrid } from '../components/SimpleChart';
+import { BarChart, DonutChart, StatGrid } from '../components/SimpleChart';
 import { jsPDF } from 'jspdf';
 
 function ReportsPage() {
