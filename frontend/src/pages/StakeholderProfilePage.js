@@ -22,6 +22,10 @@ function StakeholderProfilePage() {
   const [aiInsights, setAiInsights] = useState(null);
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showEngagementModal, setShowEngagementModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [selectedEngagement, setSelectedEngagement] = useState('');
 
   const [interactionForm, setInteractionForm] = useState({
     type: 'meeting',
@@ -97,6 +101,63 @@ function StakeholderProfilePage() {
       setToast({
         show: true,
         message: 'Failed to log interaction',
+        type: 'error',
+      });
+    }
+  }
+
+  async function handleAddNote() {
+    if (!noteText.trim()) return;
+
+    try {
+      const currentNotes = stakeholder.notes || '';
+      const timestamp = new Date().toLocaleString();
+      const newNote = currentNotes
+        ? `${currentNotes}\n\n[${timestamp}] ${noteText.trim()}`
+        : `[${timestamp}] ${noteText.trim()}`;
+
+      await stakeholderAPI.update(id, {
+        ...stakeholder,
+        notes: newNote,
+      });
+
+      setNoteText('');
+      setShowNoteModal(false);
+      setToast({
+        show: true,
+        message: 'Note added successfully ✓',
+        type: 'success',
+      });
+      loadData();
+    } catch (err) {
+      setToast({
+        show: true,
+        message: 'Failed to add note',
+        type: 'error',
+      });
+    }
+  }
+
+  async function handleChangeEngagement() {
+    if (!selectedEngagement) return;
+
+    try {
+      await stakeholderAPI.update(id, {
+        ...stakeholder,
+        engagement_status: selectedEngagement,
+      });
+
+      setShowEngagementModal(false);
+      setToast({
+        show: true,
+        message: 'Engagement status updated successfully ✓',
+        type: 'success',
+      });
+      loadData();
+    } catch (err) {
+      setToast({
+        show: true,
+        message: 'Failed to update engagement status',
         type: 'error',
       });
     }
@@ -308,7 +369,13 @@ function StakeholderProfilePage() {
                   </div>
                 </button>
 
-                <button className="action-button">
+                <button
+                  onClick={() => {
+                    setNoteText('');
+                    setShowNoteModal(true);
+                  }}
+                  className="action-button"
+                >
                   <span className="action-icon">📝</span>
                   <div>
                     <div className="action-title">Add Note</div>
@@ -316,7 +383,13 @@ function StakeholderProfilePage() {
                   </div>
                 </button>
 
-                <button className="action-button">
+                <button
+                  onClick={() => {
+                    setSelectedEngagement(stakeholder.engagement_status);
+                    setShowEngagementModal(true);
+                  }}
+                  className="action-button"
+                >
                   <span className="action-icon">🔄</span>
                   <div>
                     <div className="action-title">Change Engagement</div>
@@ -530,6 +603,109 @@ function StakeholderProfilePage() {
         stakeholder={stakeholder}
         insights={aiInsights}
       />
+
+      {/* Add Note Modal */}
+      {showNoteModal && (
+        <div className="modal-overlay" onClick={() => setShowNoteModal(false)}>
+          <div className="modal-content modal-medium" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add Note</h2>
+              <button
+                className="modal-close"
+                onClick={() => setShowNoteModal(false)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="note" className="form-label">
+                  Note
+                </label>
+                <textarea
+                  id="note"
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  className="form-textarea"
+                  placeholder="Add your note or observation..."
+                  rows="4"
+                  autoFocus
+                />
+              </div>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowNoteModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddNote}
+                  className="btn btn-primary"
+                  disabled={!noteText.trim()}
+                >
+                  Add Note
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Engagement Modal */}
+      {showEngagementModal && (
+        <div className="modal-overlay" onClick={() => setShowEngagementModal(false)}>
+          <div className="modal-content modal-medium" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Change Engagement Status</h2>
+              <button
+                className="modal-close"
+                onClick={() => setShowEngagementModal(false)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="engagement" className="form-label">
+                  Engagement Status
+                </label>
+                <select
+                  id="engagement"
+                  value={selectedEngagement}
+                  onChange={(e) => setSelectedEngagement(e.target.value)}
+                  className="form-select"
+                  autoFocus
+                >
+                  <option value="supportive">Supportive</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="resistant">Resistant</option>
+                </select>
+              </div>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowEngagementModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleChangeEngagement}
+                  className="btn btn-primary"
+                >
+                  Update Status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
