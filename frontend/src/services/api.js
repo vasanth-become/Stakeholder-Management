@@ -1,6 +1,9 @@
-// In Claude Code cloud environment, use absolute localhost URL
-// Claude Code's proxy will resolve localhost URLs correctly for the browser
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// Use relative URL to leverage webpack dev server proxy
+// The proxy in setupProxy.js forwards /api requests to localhost:3001
+// If REACT_APP_API_URL is set, use that instead (for production)
+const API_BASE_URL = process.env.REACT_APP_API_URL !== undefined && process.env.REACT_APP_API_URL !== ''
+  ? process.env.REACT_APP_API_URL
+  : '/api';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
