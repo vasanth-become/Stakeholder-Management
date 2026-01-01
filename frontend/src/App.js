@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { OnboardingProvider } from './context/OnboardingContext';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ProjectsPage from './pages/ProjectsPage';
@@ -10,28 +11,41 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import OAuthCallback from './pages/OAuthCallback';
+import Onboarding from './pages/Onboarding';
 import './App.css';
+
+function AppLayout() {
+  const location = useLocation();
+  const isOnboarding = location.pathname === '/onboarding';
+
+  return (
+    <div className="app">
+      {!isOnboarding && <Sidebar />}
+      <main className={isOnboarding ? '' : 'main-content'}>
+        <Routes>
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/project/:id" element={<ProjectDetailPage />} />
+          <Route path="/stakeholders" element={<StakeholdersListPage />} />
+          <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/integrations/callback" element={<OAuthCallback />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <Router>
-      <div className="app">
-        <Sidebar />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/project/:id" element={<ProjectDetailPage />} />
-            <Route path="/stakeholders" element={<StakeholdersListPage />} />
-            <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/integrations" element={<IntegrationsPage />} />
-            <Route path="/integrations/callback" element={<OAuthCallback />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <OnboardingProvider>
+      <Router>
+        <AppLayout />
+      </Router>
+    </OnboardingProvider>
   );
 }
 
