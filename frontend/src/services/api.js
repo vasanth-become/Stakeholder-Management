@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// Use relative URL in development to leverage the proxy
+// In production, use the environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
