@@ -534,11 +534,56 @@ function StakeholderProfilePage() {
 
         {activeTab === 'notes' && (
           <div className="notes-tab">
-            <div className="empty-state">
-              <div className="empty-icon">📝</div>
-              <h3>Notes feature coming soon</h3>
-              <p className="text-muted">Add quick notes and observations about this stakeholder</p>
+            <div className="tab-header">
+              <p className="text-muted">
+                Notes and observations about {stakeholder.name}
+              </p>
+              <button
+                onClick={() => {
+                  setNoteText('');
+                  setShowNoteModal(true);
+                }}
+                className="btn btn-primary btn-sm"
+              >
+                + Add Note
+              </button>
             </div>
+
+            {stakeholder.notes ? (
+              <div className="notes-list">
+                {stakeholder.notes.split('\n\n').filter(note => note.trim()).map((note, index) => {
+                  // Extract timestamp and content from note
+                  const timestampMatch = note.match(/^\[(.*?)\]\s*(.*)/s);
+                  const timestamp = timestampMatch ? timestampMatch[1] : '';
+                  const content = timestampMatch ? timestampMatch[2] : note;
+
+                  return (
+                    <div key={index} className="note-item">
+                      {timestamp && (
+                        <div className="note-timestamp">{timestamp}</div>
+                      )}
+                      <div className="note-content">{content}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📝</div>
+                <h3>No notes yet</h3>
+                <p className="text-muted">Add quick notes and observations about this stakeholder</p>
+                <button
+                  onClick={() => {
+                    setNoteText('');
+                    setShowNoteModal(true);
+                  }}
+                  className="btn btn-primary"
+                  style={{ marginTop: '1.5rem' }}
+                >
+                  + Add First Note
+                </button>
+              </div>
+            )}
           </div>
         )}
 

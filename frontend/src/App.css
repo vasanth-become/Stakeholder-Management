@@ -2430,6 +2430,34 @@ tbody tr:last-child td:last-child {
   margin: 0;
 }
 
+/* Notes List */
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.note-item {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.note-timestamp {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.note-content {
+  font-size: 0.938rem;
+  color: #111827;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 /* Confirm Modal */
 .confirm-modal-content {
   padding: 0.5rem 0;
