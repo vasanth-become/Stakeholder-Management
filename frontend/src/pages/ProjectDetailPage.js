@@ -5,6 +5,7 @@ import Tabs from '../components/Tabs';
 import EditProjectModal from '../components/EditProjectModal';
 import ArchiveProjectModal from '../components/ArchiveProjectModal';
 import Toast from '../components/Toast';
+import { AIService } from '../utils/aiService';
 
 function ProjectDetailPage() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ function ProjectDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [aiInsights, setAiInsights] = useState(null);
 
   useEffect(() => {
     loadProjectData();
@@ -51,6 +53,10 @@ function ProjectDetailPage() {
       // Sort by date descending
       allInteractions.sort((a, b) => new Date(b.date) - new Date(a.date));
       setInteractions(allInteractions);
+
+      // Generate AI insights
+      const insights = AIService.generateProjectInsights(projectData, stakeholdersData, allInteractions);
+      setAiInsights(insights);
 
       setError(null);
     } catch (err) {
@@ -261,16 +267,100 @@ function ProjectDetailPage() {
               </div>
             )}
 
-            {/* AI Insights Placeholder */}
-            <div className="card ai-insights-placeholder">
-              <div className="placeholder-header">
-                <h3>🤖 AI Insights</h3>
-                <span className="badge-coming-soon">Coming Soon</span>
+            {/* AI Insights */}
+            {aiInsights && (
+              <div className="card">
+                <div className="card-header">
+                  <h3>🤖 AI Insights</h3>
+                  <span className={`health-badge health-${aiInsights.healthStatus}`}>
+                    {aiInsights.healthStatus === 'healthy' ? '✓ Healthy' :
+                     aiInsights.healthStatus === 'needs-attention' ? '⚠ Needs Attention' :
+                     '🔴 At Risk'}
+                  </span>
+                </div>
+
+                <div className="ai-summary">
+                  <p>{aiInsights.summary}</p>
+                </div>
+
+                <div className="ai-sections">
+                  <div className="ai-section">
+                    <h4>📊 Stakeholder Overview</h4>
+                    <div className="stakeholder-stats">
+                      <div className="stat-row">
+                        <span>Total Stakeholders:</span>
+                        <strong>{aiInsights.stakeholderBreakdown.total}</strong>
+                      </div>
+                      {aiInsights.stakeholderBreakdown.supportive > 0 && (
+                        <div className="stat-row">
+                          <span>Supportive:</span>
+                          <strong className="text-success">{aiInsights.stakeholderBreakdown.supportive}</strong>
+                        </div>
+                      )}
+                      {aiInsights.stakeholderBreakdown.neutral > 0 && (
+                        <div className="stat-row">
+                          <span>Neutral:</span>
+                          <strong>{aiInsights.stakeholderBreakdown.neutral}</strong>
+                        </div>
+                      )}
+                      {aiInsights.stakeholderBreakdown.resistant > 0 && (
+                        <div className="stat-row">
+                          <span>Resistant:</span>
+                          <strong className="text-danger">{aiInsights.stakeholderBreakdown.resistant}</strong>
+                        </div>
+                      )}
+                      {aiInsights.stakeholderBreakdown.highRisk > 0 && (
+                        <div className="stat-row">
+                          <span>High Risk:</span>
+                          <strong className="text-danger">{aiInsights.stakeholderBreakdown.highRisk}</strong>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>💡 Key Insights</h4>
+                    <ul className="insight-list">
+                      {aiInsights.keyInsights.map((insight, index) => (
+                        <li key={index}>{insight}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>✅ Recommendations</h4>
+                    <ul className="insight-list">
+                      {aiInsights.recommendations.map((rec, index) => (
+                        <li key={index}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>⚠️ Risks</h4>
+                    {aiInsights.risks.map((risk, index) => (
+                      <div key={index} className={`risk-item risk-${risk.level}`}>
+                        <div className="risk-header">
+                          <strong>{risk.description}</strong>
+                        </div>
+                        <div className="risk-mitigation">
+                          <em>Mitigation:</em> {risk.mitigation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>🎯 Opportunities</h4>
+                    <ul className="insight-list">
+                      {aiInsights.opportunities.map((opp, index) => (
+                        <li key={index}>{opp}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <p className="text-muted">
-                AI-powered insights and recommendations for this project will appear here
-              </p>
-            </div>
+            )}
           </div>
         )}
 

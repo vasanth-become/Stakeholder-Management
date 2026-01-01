@@ -178,6 +178,43 @@ export const AIService = {
       ],
       priority: urgentCount > 0 ? 'high' : 'normal'
     };
+  },
+
+  /**
+   * Generate project-level insights
+   */
+  generateProjectInsights: (project, stakeholders = [], interactions = []) => {
+    const highRisk = stakeholders.filter(s => s.risk_score >= 12).length;
+    const mediumRisk = stakeholders.filter(s => s.risk_score >= 7 && s.risk_score < 12).length;
+    const supportive = stakeholders.filter(s => s.engagement_status === 'supportive').length;
+    const neutral = stakeholders.filter(s => s.engagement_status === 'neutral').length;
+    const resistant = stakeholders.filter(s => s.engagement_status === 'resistant').length;
+
+    const totalStakeholders = stakeholders.length;
+    const engagementScore = totalStakeholders > 0
+      ? ((supportive * 2 + neutral - resistant * 2) / totalStakeholders * 50) + 50
+      : 50;
+
+    const projectHealth = highRisk === 0 && resistant === 0 ? 'healthy' :
+                         highRisk > 0 || resistant > 1 ? 'at-risk' : 'needs-attention';
+
+    return {
+      summary: generateProjectSummary(project, stakeholders, projectHealth),
+      stakeholderBreakdown: {
+        total: totalStakeholders,
+        supportive,
+        neutral,
+        resistant,
+        highRisk,
+        mediumRisk
+      },
+      healthScore: Math.round(engagementScore),
+      healthStatus: projectHealth,
+      keyInsights: generateProjectKeyInsights(stakeholders, interactions, projectHealth),
+      recommendations: generateProjectRecommendations(stakeholders, projectHealth),
+      risks: generateProjectRisks(stakeholders, highRisk, resistant),
+      opportunities: generateProjectOpportunities(stakeholders, supportive)
+    };
   }
 };
 
@@ -340,6 +377,152 @@ function generateNextSteps(highRisk, mediumRisk) {
   steps.push('Leverage supportive stakeholders to build coalition');
 
   return steps;
+}
+
+function generateProjectSummary(project, stakeholders, projectHealth) {
+  const count = stakeholders.length;
+  const healthMap = {
+    'healthy': 'strong stakeholder alignment',
+    'needs-attention': 'mixed stakeholder engagement',
+    'at-risk': 'significant stakeholder challenges'
+  };
+
+  return `${project.name} has ${count} ${count === 1 ? 'stakeholder' : 'stakeholders'} with ${healthMap[projectHealth]}. ${
+    project.status === 'active' ? 'The project is active and requires ongoing stakeholder management.' :
+    project.status === 'planning' ? 'The project is in planning phase—early engagement is critical.' :
+    'Monitor stakeholder relationships to maintain project momentum.'
+  }`;
+}
+
+function generateProjectKeyInsights(stakeholders, interactions, projectHealth) {
+  const insights = [];
+
+  if (stakeholders.length === 0) {
+    insights.push('No stakeholders have been added yet. Identify key stakeholders to begin engagement planning.');
+    return insights;
+  }
+
+  const supportiveCount = stakeholders.filter(s => s.engagement_status === 'supportive').length;
+  const resistantCount = stakeholders.filter(s => s.engagement_status === 'resistant').length;
+  const highPower = stakeholders.filter(s => s.power >= 4).length;
+
+  if (projectHealth === 'healthy') {
+    insights.push('✓ Strong stakeholder alignment supports project success');
+  } else if (projectHealth === 'at-risk') {
+    insights.push('⚠️ Critical stakeholders require immediate attention');
+  }
+
+  if (highPower > 0) {
+    insights.push(`${highPower} high-power stakeholder${highPower > 1 ? 's' : ''} can significantly impact project decisions`);
+  }
+
+  if (supportiveCount > resistantCount) {
+    insights.push(`Leverage ${supportiveCount} supportive stakeholder${supportiveCount > 1 ? 's' : ''} to build momentum`);
+  }
+
+  if (resistantCount > 0) {
+    insights.push(`Address concerns of ${resistantCount} resistant stakeholder${resistantCount > 1 ? 's' : ''} early`);
+  }
+
+  if (interactions.length === 0) {
+    insights.push('No interactions logged yet—begin stakeholder outreach');
+  }
+
+  return insights;
+}
+
+function generateProjectRecommendations(stakeholders, projectHealth) {
+  const recs = [];
+
+  if (projectHealth === 'at-risk') {
+    recs.push('Schedule urgent check-ins with all high-risk stakeholders');
+    recs.push('Develop mitigation strategies for resistant stakeholders');
+  }
+
+  const highPower = stakeholders.filter(s => s.power >= 4);
+  if (highPower.length > 0) {
+    recs.push('Maintain frequent communication with high-power decision makers');
+  }
+
+  const resistant = stakeholders.filter(s => s.engagement_status === 'resistant');
+  if (resistant.length > 0) {
+    recs.push('Create targeted engagement plans for resistant stakeholders');
+  }
+
+  const supportive = stakeholders.filter(s => s.engagement_status === 'supportive');
+  if (supportive.length > 0) {
+    recs.push('Empower supportive stakeholders to champion the project');
+  }
+
+  if (recs.length === 0) {
+    recs.push('Continue regular stakeholder communication');
+    recs.push('Monitor engagement levels proactively');
+  }
+
+  return recs;
+}
+
+function generateProjectRisks(stakeholders, highRisk, resistant) {
+  const risks = [];
+
+  if (highRisk > 0) {
+    risks.push({
+      level: 'high',
+      description: `${highRisk} high-risk stakeholder${highRisk > 1 ? 's' : ''} could block project progress`,
+      mitigation: 'Schedule immediate 1:1 meetings to address concerns'
+    });
+  }
+
+  if (resistant > 0) {
+    risks.push({
+      level: resistant > 1 ? 'high' : 'medium',
+      description: `Resistance from ${resistant} stakeholder${resistant > 1 ? 's' : ''} may slow adoption`,
+      mitigation: 'Understand root causes and develop targeted messaging'
+    });
+  }
+
+  const highPowerResistant = stakeholders.filter(s => s.power >= 4 && s.engagement_status === 'resistant').length;
+  if (highPowerResistant > 0) {
+    risks.push({
+      level: 'critical',
+      description: 'High-power stakeholders are resistant—project approval at risk',
+      mitigation: 'Executive escalation and realignment required immediately'
+    });
+  }
+
+  if (risks.length === 0) {
+    risks.push({
+      level: 'low',
+      description: 'No significant stakeholder risks identified',
+      mitigation: 'Maintain current engagement strategy'
+    });
+  }
+
+  return risks;
+}
+
+function generateProjectOpportunities(stakeholders, supportive) {
+  const opps = [];
+
+  if (supportive > 0) {
+    opps.push(`${supportive} supportive stakeholder${supportive > 1 ? 's' : ''} can advocate for the project`);
+  }
+
+  const highInfluence = stakeholders.filter(s => s.influence >= 4).length;
+  if (highInfluence > 0) {
+    opps.push(`${highInfluence} influential stakeholder${highInfluence > 1 ? 's' : ''} can sway others`);
+  }
+
+  const neutral = stakeholders.filter(s => s.engagement_status === 'neutral').length;
+  if (neutral > 0) {
+    opps.push(`${neutral} neutral stakeholder${neutral > 1 ? 's' : ''} can be converted to supporters`);
+  }
+
+  if (opps.length === 0) {
+    opps.push('Add stakeholders to unlock engagement opportunities');
+  }
+
+  return opps;
 }
 
 export default AIService;
