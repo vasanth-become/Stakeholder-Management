@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { projectAPI, stakeholderAPI, interactionAPI } from '../services/api';
 import ReportCard from '../components/ReportCard';
 import { BarChart, LineChart, DonutChart, StatGrid } from '../components/SimpleChart';
+import { jsPDF } from 'jspdf';
 
 function ReportsPage() {
   const [projects, setProjects] = useState([]);
@@ -114,29 +115,335 @@ function ReportsPage() {
     }
   });
 
-  function handleExportPDF() {
-    alert('PDF export functionality coming soon!');
-  }
-
   function handleExportCSV() {
-    // Simple CSV export
-    const csv = [
-      ['Metric', 'Value'],
-      ['Total Projects', projects.length],
-      ['Active Projects', activeProjects],
-      ['Completed Projects', completedProjects],
-      ['Total Stakeholders', stakeholders.length],
-      ['High Risk Stakeholders', highRiskStakeholders],
-      ['Average Risk Score', avgRiskScore],
-      ['Total Interactions', interactions.length],
-    ].map(row => row.join(',')).join('\n');
+    // Generate comprehensive CSV report
+    const timestamp = new Date().toISOString().split('T')[0];
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // Helper function to escape CSV values
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    let csvContent = '';
+
+    // Summary Section
+    csvContent += 'STAKEHOLDER RADAR - COMPREHENSIVE REPORT\n';
+    csvContent += `Generated: ${new Date().toLocaleString()}\n`;
+    csvContent += '\n';
+
+    // Key Metrics
+    csvContent += 'KEY METRICS\n';
+    csvContent += 'Metric,Value\n';
+    csvContent += `Total Projects,${projects.length}\n`;
+    csvContent += `Active Projects,${activeProjects}\n`;
+    csvContent += `Completed Projects,${completedProjects}\n`;
+    csvContent += `Projects at Risk,${projectsAtRisk}\n`;
+    csvContent += `Total Stakeholders,${stakeholders.length}\n`;
+    csvContent += `High Risk Stakeholders,${highRiskStakeholders}\n`;
+    csvContent += `Supportive Stakeholders,${supportiveStakeholders}\n`;
+    csvContent += `Neutral Stakeholders,${neutralStakeholders}\n`;
+    csvContent += `Resistant Stakeholders,${resistantStakeholders}\n`;
+    csvContent += `Average Risk Score,${avgRiskScore}\n`;
+    csvContent += `Total Interactions,${interactions.length}\n`;
+    csvContent += '\n';
+
+    // Projects Detail
+    csvContent += 'PROJECT DETAILS\n';
+    csvContent += 'Project Name,Status,Owner,Start Date,Stakeholder Count,High Risk Count\n';
+    projects.forEach(project => {
+      const projectStakeholders = stakeholders.filter(s => s.project_id === project.id);
+      const projectHighRisk = projectStakeholders.filter(s => s.risk_score >= 12).length;
+      csvContent += `${escapeCSV(project.name)},${escapeCSV(project.status)},${escapeCSV(project.owner)},${escapeCSV(project.start_date)},${projectStakeholders.length},${projectHighRisk}\n`;
+    });
+    csvContent += '\n';
+
+    // Stakeholders Detail
+    csvContent += 'STAKEHOLDER DETAILS\n';
+    csvContent += 'Name,Role,Company,Project,Power,Influence,Engagement,Risk Score,Preferred Channel,Owner\n';
+    stakeholders.forEach(stakeholder => {
+      const project = projects.find(p => p.id === stakeholder.project_id);
+      csvContent += `${escapeCSV(stakeholder.name)},${escapeCSV(stakeholder.role)},${escapeCSV(stakeholder.company)},${escapeCSV(project?.name)},${stakeholder.power},${stakeholder.influence},${escapeCSV(stakeholder.engagement_status)},${stakeholder.risk_score},${escapeCSV(stakeholder.preferred_channel)},${escapeCSV(stakeholder.owner)}\n`;
+    });
+    csvContent += '\n';
+
+    // High Risk Stakeholders
+    if (topRiskStakeholders.length > 0) {
+      csvContent += 'HIGH RISK STAKEHOLDERS (TOP 5)\n';
+      csvContent += 'Name,Role,Project,Risk Score,Engagement\n';
+      topRiskStakeholders.forEach(stakeholder => {
+        const project = projects.find(p => p.id === stakeholder.project_id);
+        csvContent += `${escapeCSV(stakeholder.name)},${escapeCSV(stakeholder.role)},${escapeCSV(project?.name)},${stakeholder.risk_score},${escapeCSV(stakeholder.engagement_status)}\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // Interactions Summary
+    csvContent += 'INTERACTION SUMMARY\n';
+    csvContent += 'Type,Count\n';
+    Object.entries(interactionsByType).forEach(([type, count]) => {
+      csvContent += `${escapeCSV(type)},${count}\n`;
+    });
+    csvContent += '\n';
+
+    // Owner Performance
+    csvContent += 'OWNER PERFORMANCE\n';
+    csvContent += 'Owner,Stakeholders,Interactions,Average Risk Score\n';
+    Object.entries(ownerStats)
+      .sort((a, b) => b[1].stakeholders - a[1].stakeholders)
+      .forEach(([owner, stats]) => {
+        csvContent += `${escapeCSV(owner)},${stats.stakeholders},${stats.interactions},${stats.avgRisk.toFixed(1)}\n`;
+      });
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'stakeholder-radar-report.csv';
+    a.download = `stakeholder-radar-report-${timestamp}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  function handleExportPDF() {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const lineHeight = 7;
+    let yPos = margin;
+
+    // Helper function to add a new page if needed
+    const checkPageBreak = (requiredSpace = 20) => {
+      if (yPos + requiredSpace > pageHeight - margin) {
+        doc.addPage();
+        yPos = margin;
+        return true;
+      }
+      return false;
+    };
+
+    // Helper function to add text with word wrap
+    const addWrappedText = (text, x, y, maxWidth, fontSize = 10) => {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return lines.length * lineHeight;
+    };
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('Stakeholder Radar Report', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPos);
+    doc.setTextColor(0);
+    yPos += 15;
+
+    // Section 1: Key Metrics
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Key Metrics', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    const metrics = [
+      [`Total Projects: ${projects.length}`, `Active: ${activeProjects}`, `Completed: ${completedProjects}`],
+      [`Total Stakeholders: ${stakeholders.length}`, `High Risk: ${highRiskStakeholders}`, `Avg Risk: ${avgRiskScore}`],
+      [`Engagement - Supportive: ${supportiveStakeholders}`, `Neutral: ${neutralStakeholders}`, `Resistant: ${resistantStakeholders}`],
+      [`Total Interactions: ${interactions.length}`, `Projects at Risk: ${riskPercentage}%`, '']
+    ];
+
+    metrics.forEach(row => {
+      checkPageBreak();
+      const colWidth = (pageWidth - 2 * margin) / 3;
+      row.forEach((metric, index) => {
+        if (metric) {
+          doc.text(metric, margin + (index * colWidth), yPos);
+        }
+      });
+      yPos += lineHeight;
+    });
+    yPos += 10;
+
+    // Section 2: AI Insights
+    checkPageBreak(30);
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('AI Insights & Recommendations', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+
+    if (highRiskStakeholders > 0) {
+      checkPageBreak(15);
+      doc.setTextColor(220, 38, 38); // Red
+      doc.setFont(undefined, 'bold');
+      doc.text('Risks to Watch:', margin, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      yPos += lineHeight;
+
+      const riskText = `${highRiskStakeholders} stakeholder${highRiskStakeholders !== 1 ? 's show' : ' shows'} high risk. Consider scheduling check-in meetings with high-risk stakeholders.`;
+      yPos += addWrappedText(riskText, margin + 5, yPos, pageWidth - 2 * margin - 5);
+      yPos += 5;
+    }
+
+    checkPageBreak(15);
+    doc.setTextColor(79, 70, 229); // Indigo
+    doc.setFont(undefined, 'bold');
+    doc.text('Suggested Next Steps:', margin, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(0);
+    yPos += lineHeight;
+
+    const suggestions = [];
+    if (highRiskStakeholders > 0) suggestions.push(`Review ${highRiskStakeholders} high-risk stakeholder${highRiskStakeholders !== 1 ? 's' : ''}`);
+    if (resistantStakeholders > 0) suggestions.push(`Develop strategies for ${resistantStakeholders} resistant stakeholder${resistantStakeholders !== 1 ? 's' : ''}`);
+    suggestions.push('Maintain regular communication with supportive stakeholders');
+
+    suggestions.forEach(suggestion => {
+      checkPageBreak();
+      doc.text(`• ${suggestion}`, margin + 5, yPos);
+      yPos += lineHeight;
+    });
+    yPos += 10;
+
+    // Section 3: High Risk Stakeholders
+    if (topRiskStakeholders.length > 0) {
+      checkPageBreak(40);
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Top 5 High Risk Stakeholders', margin, yPos);
+      yPos += 10;
+
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+
+      // Table header
+      doc.setFont(undefined, 'bold');
+      doc.text('Name', margin, yPos);
+      doc.text('Role', margin + 60, yPos);
+      doc.text('Risk', margin + 120, yPos);
+      doc.text('Engagement', margin + 145, yPos);
+      yPos += lineHeight;
+
+      // Draw line under header
+      doc.line(margin, yPos - 2, pageWidth - margin, yPos - 2);
+      yPos += 2;
+
+      doc.setFont(undefined, 'normal');
+      topRiskStakeholders.forEach(stakeholder => {
+        checkPageBreak();
+        const name = stakeholder.name.length > 20 ? stakeholder.name.substring(0, 17) + '...' : stakeholder.name;
+        const role = stakeholder.role.length > 20 ? stakeholder.role.substring(0, 17) + '...' : stakeholder.role;
+
+        doc.text(name, margin, yPos);
+        doc.text(role, margin + 60, yPos);
+        doc.text(`${stakeholder.risk_score}/20`, margin + 120, yPos);
+        doc.text(stakeholder.engagement_status, margin + 145, yPos);
+        yPos += lineHeight;
+      });
+      yPos += 10;
+    }
+
+    // Section 4: Project Summary
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Project Summary', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+
+    // Table header
+    doc.text('Project Name', margin, yPos);
+    doc.text('Status', margin + 80, yPos);
+    doc.text('Stakeholders', margin + 120, yPos);
+    doc.text('High Risk', margin + 160, yPos);
+    yPos += lineHeight;
+
+    doc.line(margin, yPos - 2, pageWidth - margin, yPos - 2);
+    yPos += 2;
+
+    doc.setFont(undefined, 'normal');
+    projects.slice(0, 10).forEach(project => {
+      checkPageBreak();
+      const projectStakeholders = stakeholders.filter(s => s.project_id === project.id);
+      const projectHighRisk = projectStakeholders.filter(s => s.risk_score >= 12).length;
+      const name = project.name.length > 25 ? project.name.substring(0, 22) + '...' : project.name;
+
+      doc.text(name, margin, yPos);
+      doc.text(project.status, margin + 80, yPos);
+      doc.text(String(projectStakeholders.length), margin + 120, yPos);
+      doc.text(String(projectHighRisk), margin + 160, yPos);
+      yPos += lineHeight;
+    });
+    yPos += 10;
+
+    // Section 5: Owner Performance
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Owner Performance', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+
+    // Table header
+    doc.text('Owner', margin, yPos);
+    doc.text('Stakeholders', margin + 70, yPos);
+    doc.text('Interactions', margin + 120, yPos);
+    doc.text('Avg Risk', margin + 160, yPos);
+    yPos += lineHeight;
+
+    doc.line(margin, yPos - 2, pageWidth - margin, yPos - 2);
+    yPos += 2;
+
+    doc.setFont(undefined, 'normal');
+    Object.entries(ownerStats)
+      .sort((a, b) => b[1].stakeholders - a[1].stakeholders)
+      .forEach(([owner, stats]) => {
+        checkPageBreak();
+        const ownerName = owner.length > 20 ? owner.substring(0, 17) + '...' : owner;
+
+        doc.text(ownerName, margin, yPos);
+        doc.text(String(stats.stakeholders), margin + 70, yPos);
+        doc.text(String(stats.interactions), margin + 120, yPos);
+        doc.text(stats.avgRisk.toFixed(1), margin + 160, yPos);
+        yPos += lineHeight;
+      });
+
+    // Footer on last page
+    const totalPages = doc.internal.pages.length - 1;
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `Page ${i} of ${totalPages} - Stakeholder Radar © ${new Date().getFullYear()}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    // Save PDF
+    const timestamp = new Date().toISOString().split('T')[0];
+    doc.save(`stakeholder-radar-report-${timestamp}.pdf`);
   }
 
   if (loading) return <div className="loading">Loading reports...</div>;
