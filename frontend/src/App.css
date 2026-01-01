@@ -2779,6 +2779,9 @@ tbody tr:last-child td:last-child {
 }
 
 .ai-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
@@ -2789,6 +2792,7 @@ tbody tr:last-child td:last-child {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0;
 }
 
 .ai-sections {
@@ -2814,6 +2818,54 @@ tbody tr:last-child td:last-child {
   font-size: 0.938rem;
   color: #374151;
   line-height: 1.6;
+}
+
+.ai-section .insight-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ai-section .insight-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.938rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.ai-section .insight-list li:before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #4F46E5;
+  font-weight: bold;
+}
+
+.ai-section .warning-list li:before {
+  content: "⚠";
+  color: #F59E0B;
+}
+
+.action-recommendation {
+  background: #F9FAFB;
+  border-left: 4px solid #4F46E5;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.action-recommendation p {
+  margin: 0.5rem 0;
+}
+
+.action-recommendation p:first-child {
+  margin-top: 0;
+  color: #111827;
+}
+
+.action-recommendation p:last-child {
+  margin-bottom: 0;
 }
 
 /* Timeline Outcome */

@@ -589,36 +589,89 @@ function StakeholderProfilePage() {
 
         {activeTab === 'ai-strategy' && (
           <div className="ai-strategy-tab">
-            {suggestions ? (
+            {aiLoading ? (
+              <div className="empty-state">
+                <div className="empty-icon">✨</div>
+                <h3>Generating AI recommendations...</h3>
+              </div>
+            ) : aiInsights ? (
               <div className="ai-panel">
                 <div className="ai-panel-header">
                   <h3>✨ AI Recommendation</h3>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => generateAIInsights(stakeholder, interactions)}
+                  >
+                    🔄 Refresh
+                  </button>
                 </div>
 
                 <div className="ai-sections">
                   <div className="ai-section">
                     <h4>Risk Summary</h4>
-                    <p>{suggestions.riskAssessment?.summary || 'Analyzing risk factors...'}</p>
+                    <p>{aiInsights.riskReasoning}</p>
                   </div>
 
                   <div className="ai-section">
                     <h4>Communication Strategy</h4>
-                    <p>{suggestions.communicationStrategy?.approach || 'Analyzing best approach...'}</p>
+                    {aiInsights.communicationTips && aiInsights.communicationTips.length > 0 ? (
+                      <ul className="insight-list">
+                        {aiInsights.communicationTips.map((tip, index) => (
+                          <li key={index}>{tip}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Maintain regular communication aligned with their preferred channel.</p>
+                    )}
                   </div>
 
                   <div className="ai-section">
                     <h4>Suggested Next Step</h4>
-                    <p>{suggestions.nextSteps?.[0]?.action || 'Calculating recommendations...'}</p>
+                    {aiInsights.suggestedAction ? (
+                      <div className="action-recommendation">
+                        <p><strong>{aiInsights.suggestedAction.action}</strong></p>
+                        <p className="text-muted">{aiInsights.suggestedAction.timing}</p>
+                        <p>{aiInsights.suggestedAction.reason}</p>
+                      </div>
+                    ) : (
+                      <p>Continue monitoring and maintaining regular contact.</p>
+                    )}
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>What They Care About</h4>
+                    {aiInsights.whatTheyCareAbout && aiInsights.whatTheyCareAbout.length > 0 ? (
+                      <ul className="insight-list">
+                        {aiInsights.whatTheyCareAbout.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Understanding their priorities will help tailor your approach.</p>
+                    )}
+                  </div>
+
+                  <div className="ai-section">
+                    <h4>Mistakes to Avoid</h4>
+                    {aiInsights.mistakesToAvoid && aiInsights.mistakesToAvoid.length > 0 ? (
+                      <ul className="insight-list warning-list">
+                        {aiInsights.mistakesToAvoid.map((mistake, index) => (
+                          <li key={index}>{mistake}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Maintain professionalism and respect their communication preferences.</p>
+                    )}
                   </div>
 
                   <div className="ai-section">
                     <h4>Recommended Frequency</h4>
                     <p>
                       {stakeholder.risk_score >= 12
-                        ? 'Weekly check-ins recommended for high-risk stakeholders'
+                        ? '📅 Weekly check-ins recommended for high-risk stakeholders'
                         : stakeholder.risk_score >= 7
-                        ? 'Bi-weekly check-ins recommended'
-                        : 'Monthly check-ins recommended'}
+                        ? '📅 Bi-weekly check-ins recommended'
+                        : '📅 Monthly check-ins recommended'}
                     </p>
                   </div>
                 </div>
@@ -626,7 +679,14 @@ function StakeholderProfilePage() {
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">✨</div>
-                <h3>Loading AI recommendations...</h3>
+                <h3>No AI insights available</h3>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => generateAIInsights(stakeholder, interactions)}
+                  style={{ marginTop: '1rem' }}
+                >
+                  Generate Insights
+                </button>
               </div>
             )}
           </div>
