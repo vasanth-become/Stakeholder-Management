@@ -63,7 +63,10 @@ function ProjectsPage() {
     }
 
     // Filter by status
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'all') {
+      // Show all projects EXCEPT completed/archived ones
+      filtered = filtered.filter((project) => project.status !== 'completed');
+    } else {
       filtered = filtered.filter((project) => project.status === statusFilter);
     }
 
@@ -122,7 +125,7 @@ function ProjectsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="filter-select"
             >
-              <option value="all">All</option>
+              <option value="all">All Active</option>
               <option value="active">Active</option>
               <option value="planning">Planning</option>
               <option value="on-hold">On Hold</option>
