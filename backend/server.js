@@ -24,8 +24,12 @@ app.use((req, res, next) => {
 });
 
 // Middleware
+// In development, allow all origins for cloud IDE compatibility
+// In production, set FRONTEND_URL environment variable
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production'
+    ? (process.env.FRONTEND_URL || 'http://localhost:3000')
+    : true, // Allow all origins in development
   credentials: true
 }));
 app.use(bodyParser.json());
