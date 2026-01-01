@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import AddStakeholderPage from './pages/AddStakeholderPage';
 import StakeholdersListPage from './pages/StakeholdersListPage';
 import StakeholderProfilePage from './pages/StakeholderProfilePage';
 import ReportsPage from './pages/ReportsPage';
@@ -27,6 +28,7 @@ function AppLayout() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/project/:id" element={<ProjectDetailPage />} />
+          <Route path="/project/:id/add-stakeholder" element={<AddStakeholderPage />} />
           <Route path="/stakeholders" element={<StakeholdersListPage />} />
           <Route path="/stakeholder/:id" element={<StakeholderProfilePage />} />
           <Route path="/reports" element={<ReportsPage />} />
