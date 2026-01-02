@@ -6,7 +6,7 @@
  */
 
 const crypto = require('crypto');
-const db = require('../config/database');
+const db = require('../database/db');
 
 // IMPORTANT: Store this in environment variable, never in code
 const ENCRYPTION_KEY = process.env.OAUTH_ENCRYPTION_KEY || (() => {

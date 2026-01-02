@@ -5,7 +5,7 @@
  */
 
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
+// const RedisStore = require('rate-limit-redis'); // Optional for distributed systems
 const authConfig = require('../config/auth');
 const authService = require('../services/authService');
 

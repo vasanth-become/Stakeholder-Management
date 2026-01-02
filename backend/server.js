@@ -8,6 +8,8 @@ const projectRoutes = require('./routes/projects');
 const stakeholderRoutes = require('./routes/stakeholders');
 const interactionRoutes = require('./routes/interactions');
 const authRoutes = require('./routes/auth');
+const securityRoutes = require('./routes/security');
+const oauthRoutes = require('./routes/oauth');
 
 // Import middleware
 const { oauthErrorHandler } = require('./middleware/oauth');
@@ -40,6 +42,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/stakeholders', stakeholderRoutes);
 app.use('/api/interactions', interactionRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/oauth', oauthRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

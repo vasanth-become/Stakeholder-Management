@@ -4,7 +4,7 @@
  * Manages OAuth tokens with encryption, rotation, and revocation
  */
 
-const db = require('../config/database');
+const db = require('../database/db');
 const encryptionService = require('./encryptionService');
 const auditService = require('./auditService');
 

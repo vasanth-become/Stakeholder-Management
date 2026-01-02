@@ -4,7 +4,7 @@
  * Handles security-related operations for user accounts
  */
 
-const db = require('../config/database');
+const db = require('../database/db');
 
 class SecurityService {
   /**
