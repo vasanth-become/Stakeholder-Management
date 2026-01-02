@@ -83,8 +83,17 @@ function ImportMeetingNotesModal({ isOpen, onClose, onProcess, stakeholderId }) 
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to process file');
+          let errorMessage = 'Failed to process file';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (e) {
+            // If response isn't JSON, it might be HTML error page
+            const text = await response.text();
+            console.error('Server response:', text);
+            errorMessage = `Server error (${response.status}): Please ensure backend is running`;
+          }
+          throw new Error(errorMessage);
         }
 
         result = await response.json();

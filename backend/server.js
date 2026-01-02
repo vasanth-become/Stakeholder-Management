@@ -53,6 +53,17 @@ app.get('/api/health', (req, res) => {
 // OAuth error handling middleware
 app.use(oauthErrorHandler());
 
+// Multer error handling middleware
+app.use((err, req, res, next) => {
+  if (err.name === 'MulterError') {
+    console.error('[Multer Error]:', err.message);
+    return res.status(400).json({
+      error: `File upload error: ${err.message}`
+    });
+  }
+  next(err);
+});
+
 // General error handling middleware
 app.use((err, req, res, next) => {
   const timestamp = new Date().toISOString();
