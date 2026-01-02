@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { stakeholderAPI, projectAPI } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { stakeholderAPI, projectAPI, interactionAPI } from '../services/api';
 import AddStakeholderModal from '../components/AddStakeholderModal';
 import Toast from '../components/Toast';
 
@@ -8,34 +8,48 @@ function StakeholdersListPage() {
   const [stakeholders, setStakeholders] = useState([]);
   const [filteredStakeholders, setFilteredStakeholders] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [followUpStakeholderIds, setFollowUpStakeholderIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
   const [engagementFilter, setEngagementFilter] = useState('all');
+  const [followUpFilter, setFollowUpFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     loadData();
-  }, []);
+    // Check URL parameters for initial filter
+    const params = new URLSearchParams(location.search);
+    if (params.get('filter') === 'followup') {
+      setFollowUpFilter('yes');
+    }
+  }, [location.search]);
 
   useEffect(() => {
     filterStakeholders();
-  }, [stakeholders, searchQuery, projectFilter, riskFilter, engagementFilter]);
+  }, [stakeholders, searchQuery, projectFilter, riskFilter, engagementFilter, followUpFilter, followUpStakeholderIds]);
 
   async function loadData() {
     try {
       setLoading(true);
-      const [stakeholdersData, projectsData] = await Promise.all([
+      const [stakeholdersData, projectsData, followUpData] = await Promise.all([
         stakeholderAPI.getAll(),
         projectAPI.getAll(),
+        interactionAPI.getFollowUp(),
       ]);
 
       setStakeholders(stakeholdersData);
       setProjects(projectsData);
+
+      // Extract unique stakeholder IDs that need follow-up
+      const followUpIds = new Set(followUpData.map(interaction => interaction.stakeholder_id));
+      setFollowUpStakeholderIds(followUpIds);
+
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -78,6 +92,13 @@ function StakeholdersListPage() {
     // Engagement filter
     if (engagementFilter !== 'all') {
       filtered = filtered.filter((s) => s.engagement_status === engagementFilter);
+    }
+
+    // Follow-up filter
+    if (followUpFilter === 'yes') {
+      filtered = filtered.filter((s) => followUpStakeholderIds.has(s.id));
+    } else if (followUpFilter === 'no') {
+      filtered = filtered.filter((s) => !followUpStakeholderIds.has(s.id));
     }
 
     setFilteredStakeholders(filtered);
@@ -134,6 +155,16 @@ function StakeholdersListPage() {
         </div>
 
         <div className="filter-chips">
+          <select
+            value={followUpFilter}
+            onChange={(e) => setFollowUpFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Stakeholders</option>
+            <option value="yes">📝 Follow-up Needed ({followUpStakeholderIds.size})</option>
+            <option value="no">No Follow-up</option>
+          </select>
+
           <select
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}

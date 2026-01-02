@@ -220,7 +220,7 @@ function Dashboard() {
               <div className="action-content">
                 <h3>Follow-up Required</h3>
                 <p>{followUpActions.length} interaction{followUpActions.length !== 1 ? 's' : ''} marked for follow-up</p>
-                <button className="action-link" onClick={() => navigate('/stakeholders')}>
+                <button className="action-link" onClick={() => navigate('/stakeholders?filter=followup')}>
                   View all →
                 </button>
               </div>
