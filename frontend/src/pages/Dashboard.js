@@ -249,7 +249,7 @@ function Dashboard() {
               <div className="action-content">
                 <h3>Schedule Check-ins</h3>
                 <p>Some high-risk stakeholders haven't been contacted recently</p>
-                <button className="action-link" onClick={() => navigate('/stakeholders')}>
+                <button className="action-link" onClick={() => navigate('/stakeholders?filter=checkin')}>
                   Review →
                 </button>
               </div>

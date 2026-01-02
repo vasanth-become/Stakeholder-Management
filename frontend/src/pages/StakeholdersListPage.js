@@ -9,6 +9,7 @@ function StakeholdersListPage() {
   const [filteredStakeholders, setFilteredStakeholders] = useState([]);
   const [projects, setProjects] = useState([]);
   const [followUpStakeholderIds, setFollowUpStakeholderIds] = useState(new Set());
+  const [needsCheckInIds, setNeedsCheckInIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,6 +17,7 @@ function StakeholdersListPage() {
   const [riskFilter, setRiskFilter] = useState('all');
   const [engagementFilter, setEngagementFilter] = useState('all');
   const [followUpFilter, setFollowUpFilter] = useState('all');
+  const [checkInFilter, setCheckInFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
@@ -27,12 +29,14 @@ function StakeholdersListPage() {
     const params = new URLSearchParams(location.search);
     if (params.get('filter') === 'followup') {
       setFollowUpFilter('yes');
+    } else if (params.get('filter') === 'checkin') {
+      setCheckInFilter('yes');
     }
   }, [location.search]);
 
   useEffect(() => {
     filterStakeholders();
-  }, [stakeholders, searchQuery, projectFilter, riskFilter, engagementFilter, followUpFilter, followUpStakeholderIds]);
+  }, [stakeholders, searchQuery, projectFilter, riskFilter, engagementFilter, followUpFilter, checkInFilter, followUpStakeholderIds, needsCheckInIds]);
 
   async function loadData() {
     try {
@@ -49,6 +53,27 @@ function StakeholdersListPage() {
       // Extract unique stakeholder IDs that need follow-up
       const followUpIds = new Set(followUpData.map(interaction => interaction.stakeholder_id));
       setFollowUpStakeholderIds(followUpIds);
+
+      // Calculate stakeholders needing check-in (high-risk + not contacted in 14+ days)
+      const checkInIds = new Set();
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+      for (const stakeholder of stakeholdersData) {
+        // Only consider high-risk stakeholders (score >= 12)
+        if (stakeholder.risk_score >= 12) {
+          try {
+            const interactions = await interactionAPI.getByStakeholder(stakeholder.id);
+            // No interactions or last interaction was 14+ days ago
+            if (interactions.length === 0 || new Date(interactions[0].date) < fourteenDaysAgo) {
+              checkInIds.add(stakeholder.id);
+            }
+          } catch (err) {
+            // No interactions, add to check-in list
+            checkInIds.add(stakeholder.id);
+          }
+        }
+      }
+      setNeedsCheckInIds(checkInIds);
 
       setError(null);
     } catch (err) {
@@ -99,6 +124,13 @@ function StakeholdersListPage() {
       filtered = filtered.filter((s) => followUpStakeholderIds.has(s.id));
     } else if (followUpFilter === 'no') {
       filtered = filtered.filter((s) => !followUpStakeholderIds.has(s.id));
+    }
+
+    // Check-in filter
+    if (checkInFilter === 'yes') {
+      filtered = filtered.filter((s) => needsCheckInIds.has(s.id));
+    } else if (checkInFilter === 'no') {
+      filtered = filtered.filter((s) => !needsCheckInIds.has(s.id));
     }
 
     setFilteredStakeholders(filtered);
@@ -163,6 +195,16 @@ function StakeholdersListPage() {
             <option value="all">All Stakeholders</option>
             <option value="yes">📝 Follow-up Needed ({followUpStakeholderIds.size})</option>
             <option value="no">No Follow-up</option>
+          </select>
+
+          <select
+            value={checkInFilter}
+            onChange={(e) => setCheckInFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Stakeholders</option>
+            <option value="yes">📅 Check-in Needed ({needsCheckInIds.size})</option>
+            <option value="no">No Check-in Needed</option>
           </select>
 
           <select
