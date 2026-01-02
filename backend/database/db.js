@@ -75,6 +75,39 @@ function initializeDatabase() {
     )
   `);
 
+  // Run migrations for AI-generated interactions
+  try {
+    // Check if columns already exist
+    const tableInfo = db.prepare("PRAGMA table_info(interactions)").all();
+    const columnNames = tableInfo.map(col => col.name);
+
+    if (!columnNames.includes('concerns')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN concerns TEXT`);
+    }
+    if (!columnNames.includes('action_items')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN action_items TEXT`);
+    }
+    if (!columnNames.includes('owner')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN owner TEXT`);
+    }
+    if (!columnNames.includes('ai_confidence_score')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN ai_confidence_score REAL`);
+    }
+    if (!columnNames.includes('ai_generated')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN ai_generated BOOLEAN DEFAULT 0`);
+    }
+    if (!columnNames.includes('stakeholders_involved')) {
+      db.exec(`ALTER TABLE interactions ADD COLUMN stakeholders_involved TEXT`);
+    }
+
+    // Create indexes if they don't exist
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_interactions_ai_generated ON interactions(ai_generated)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_interactions_created_at ON interactions(created_at DESC)`);
+  } catch (error) {
+    // Columns likely already exist, continue
+    console.log('[Database] AI interaction columns migration check completed');
+  }
+
   console.log('Database initialized successfully');
 }
 

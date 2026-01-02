@@ -2,14 +2,27 @@ const db = require('../database/db');
 const Stakeholder = require('./stakeholder');
 
 class Interaction {
-  // Log a new interaction
+  // Log a new interaction (supports AI-generated fields)
   static create(stakeholderId, data) {
-    const { interaction_type, date, summary, outcome, follow_up_needed } = data;
+    const {
+      interaction_type,
+      date,
+      summary,
+      outcome,
+      follow_up_needed,
+      concerns,
+      action_items,
+      owner,
+      ai_confidence_score,
+      ai_generated,
+      stakeholders_involved
+    } = data;
 
     const stmt = db.prepare(`
       INSERT INTO interactions
-      (stakeholder_id, interaction_type, date, summary, outcome, follow_up_needed)
-      VALUES (?, ?, ?, ?, ?, ?)
+      (stakeholder_id, interaction_type, date, summary, outcome, follow_up_needed,
+       concerns, action_items, owner, ai_confidence_score, ai_generated, stakeholders_involved)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -18,7 +31,13 @@ class Interaction {
       date || new Date().toISOString(),
       summary,
       outcome,
-      follow_up_needed ? 1 : 0
+      follow_up_needed ? 1 : 0,
+      concerns || null,
+      action_items || null,
+      owner || null,
+      ai_confidence_score || null,
+      ai_generated ? 1 : 0,
+      stakeholders_involved || null
     );
 
     // Recalculate stakeholder risk score after logging interaction
@@ -45,12 +64,25 @@ class Interaction {
 
   // Update interaction
   static update(id, data) {
-    const { interaction_type, date, summary, outcome, follow_up_needed } = data;
+    const {
+      interaction_type,
+      date,
+      summary,
+      outcome,
+      follow_up_needed,
+      concerns,
+      action_items,
+      owner,
+      ai_confidence_score,
+      stakeholders_involved
+    } = data;
 
     const stmt = db.prepare(`
       UPDATE interactions
       SET interaction_type = ?, date = ?, summary = ?,
-          outcome = ?, follow_up_needed = ?
+          outcome = ?, follow_up_needed = ?,
+          concerns = ?, action_items = ?, owner = ?,
+          ai_confidence_score = ?, stakeholders_involved = ?
       WHERE id = ?
     `);
 
@@ -60,6 +92,11 @@ class Interaction {
       summary,
       outcome,
       follow_up_needed ? 1 : 0,
+      concerns || null,
+      action_items || null,
+      owner || null,
+      ai_confidence_score || null,
+      stakeholders_involved || null,
       id
     );
 

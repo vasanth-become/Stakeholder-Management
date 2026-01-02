@@ -5,6 +5,8 @@ import Tabs from '../components/Tabs';
 import Toast from '../components/Toast';
 import AIAssistantPanel from '../components/AIAssistantPanel';
 import AIInsightsModal from '../components/AIInsightsModal';
+import ImportMeetingNotesModal from '../components/ImportMeetingNotesModal';
+import AIInteractionPreview from '../components/AIInteractionPreview';
 import { AIService } from '../utils/aiService';
 
 function StakeholderProfilePage() {
@@ -26,6 +28,9 @@ function StakeholderProfilePage() {
   const [showEngagementModal, setShowEngagementModal] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [selectedEngagement, setSelectedEngagement] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [processedAIData, setProcessedAIData] = useState(null);
 
   const [interactionForm, setInteractionForm] = useState({
     type: 'meeting',
@@ -161,6 +166,49 @@ function StakeholderProfilePage() {
         type: 'error',
       });
     }
+  }
+
+  function handleAIProcessComplete(processedData) {
+    // Close import modal and show preview modal
+    setProcessedAIData(processedData);
+    setShowImportModal(false);
+    setShowPreviewModal(true);
+  }
+
+  async function handleSaveAIInteraction(interactionData) {
+    try {
+      await interactionAPI.create(interactionData);
+
+      setShowPreviewModal(false);
+      setProcessedAIData(null);
+      setToast({
+        show: true,
+        message: '✨ AI-generated interaction saved successfully!',
+        type: 'success',
+      });
+
+      // Log analytics event
+      if (window.analytics) {
+        window.analytics.track('interaction_created_ai', {
+          stakeholder_id: id,
+          confidence_score: interactionData.ai_confidence_score,
+        });
+      }
+
+      loadData();
+    } catch (err) {
+      throw new Error(err.message || 'Failed to save interaction');
+    }
+  }
+
+  function handleCancelPreview() {
+    setShowPreviewModal(false);
+    setProcessedAIData(null);
+    setToast({
+      show: true,
+      message: 'AI-generated interaction discarded',
+      type: 'info',
+    });
   }
 
   function getRiskLevel(score) {
@@ -407,12 +455,25 @@ function StakeholderProfilePage() {
               <p className="text-muted">
                 {interactions.length} interaction{interactions.length !== 1 ? 's' : ''} logged
               </p>
-              <button
-                onClick={() => setShowAddInteraction(!showAddInteraction)}
-                className="btn btn-primary btn-sm"
-              >
-                + Log Interaction
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    color: 'white',
+                    border: 'none'
+                  }}
+                >
+                  ✨ Import from Meeting Notes
+                </button>
+                <button
+                  onClick={() => setShowAddInteraction(!showAddInteraction)}
+                  className="btn btn-primary btn-sm"
+                >
+                  + Log Interaction
+                </button>
+              </div>
             </div>
 
             {/* Add Interaction Form */}
@@ -508,25 +569,68 @@ function StakeholderProfilePage() {
               </div>
             ) : (
               <div className="timeline">
-                {interactions.map((interaction) => (
-                  <div key={interaction.id} className="timeline-item">
-                    <div className="timeline-marker"></div>
-                    <div className="timeline-content">
-                      <div className="timeline-header">
-                        <span className="timeline-type">{interaction.interaction_type}</span>
-                        <span className="timeline-date">{formatDateTime(interaction.date)}</span>
+                {interactions.map((interaction) => {
+                  const concerns = interaction.concerns ? JSON.parse(interaction.concerns) : [];
+                  const actionItems = interaction.action_items ? JSON.parse(interaction.action_items) : [];
+                  const stakeholdersInvolved = interaction.stakeholders_involved ? JSON.parse(interaction.stakeholders_involved) : [];
+
+                  return (
+                    <div key={interaction.id} className="timeline-item">
+                      <div className="timeline-marker"></div>
+                      <div className="timeline-content">
+                        <div className="timeline-header">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span className="timeline-type">{interaction.interaction_type}</span>
+                            {interaction.ai_generated && (
+                              <span className="ai-badge" title={`AI Confidence: ${Math.round((interaction.ai_confidence_score || 0) * 100)}%`}>
+                                ✨ AI
+                              </span>
+                            )}
+                            {interaction.outcome && (
+                              <span className={`sentiment-badge sentiment-${interaction.outcome}`}>
+                                {interaction.outcome === 'positive' ? '✅' : interaction.outcome === 'negative' ? '⚠️' : '➖'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="timeline-date">{formatDateTime(interaction.date)}</span>
+                        </div>
+                        {interaction.summary && (
+                          <p className="timeline-summary">{interaction.summary}</p>
+                        )}
+                        {stakeholdersInvolved.length > 0 && (
+                          <div className="timeline-stakeholders">
+                            <strong>With:</strong> {stakeholdersInvolved.join(', ')}
+                          </div>
+                        )}
+                        {concerns.length > 0 && (
+                          <div className="timeline-concerns">
+                            <strong>⚠️ Concerns:</strong>
+                            <ul>
+                              {concerns.slice(0, 3).map((concern, idx) => (
+                                <li key={idx}>{concern}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {actionItems.length > 0 && (
+                          <div className="timeline-actions">
+                            <strong>📋 Action Items:</strong>
+                            <ul>
+                              {actionItems.slice(0, 3).map((action, idx) => (
+                                <li key={idx}>{action}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {interaction.owner && (
+                          <div className="timeline-owner">
+                            <strong>Owner:</strong> {interaction.owner}
+                          </div>
+                        )}
                       </div>
-                      {interaction.summary && (
-                        <p className="timeline-summary">{interaction.summary}</p>
-                      )}
-                      {interaction.outcome && (
-                        <p className="timeline-outcome">
-                          <strong>Outcome:</strong> {interaction.outcome}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -810,6 +914,24 @@ function StakeholderProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Import Meeting Notes Modal */}
+      <ImportMeetingNotesModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onProcess={handleAIProcessComplete}
+        stakeholderId={id}
+      />
+
+      {/* AI Interaction Preview Modal */}
+      {showPreviewModal && processedAIData && (
+        <AIInteractionPreview
+          processedData={processedAIData}
+          onSave={handleSaveAIInteraction}
+          onCancel={handleCancelPreview}
+          stakeholderId={id}
+        />
       )}
     </div>
   );
