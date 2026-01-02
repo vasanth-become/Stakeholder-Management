@@ -1,0 +1,118 @@
+.suspicious-activity.no-issues {
+  margin-bottom: 2rem;
+}
+
+.all-clear-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.all-clear-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.all-clear-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 0.25rem 0;
+}
+
+.all-clear-content p {
+  color: #047857;
+  margin: 0;
+}
+
+.suspicious-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 2px solid #fde68a;
+}
+
+.suspicious-header .alert-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.alert-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0 0 0.25rem 0;
+}
+
+.alert-content p {
+  color: #b45309;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.suspicious-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.suspicious-item {
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+}
+
+.suspicious-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.severity-icon {
+  font-size: 1.25rem;
+}
+
+.activity-message {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.suspicious-details {
+  padding-left: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.suspicious-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.suspicious-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}

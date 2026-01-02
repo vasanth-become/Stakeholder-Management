@@ -1,0 +1,85 @@
+.login-history-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.login-history-subtitle {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.login-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border-left: 3px solid #10b981;
+  transition: all 0.2s ease;
+}
+
+.login-entry:hover {
+  background: #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.login-entry.failed {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.login-entry-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.login-entry-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.login-entry-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.login-event-type {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.login-timestamp {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.login-entry-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.detail-separator {
+  opacity: 0.5;
+}
+
+.login-history.compact .login-entry {
+  padding: 0.75rem;
+}
+
+.login-history.compact .login-entry-details {
+  font-size: 0.8125rem;
+}

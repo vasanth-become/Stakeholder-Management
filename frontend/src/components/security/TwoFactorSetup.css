@@ -1,0 +1,102 @@
+.two-factor-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.two-factor-subtitle {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.feature-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #5b21b6;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+  color: #7c3aed;
+  margin-bottom: 1.5rem;
+}
+
+.two-factor-info {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.two-factor-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.two-factor-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.two-factor-info li {
+  padding: 0.5rem 0;
+  color: #4b5563;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.two-factor-info li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #10b981;
+  font-weight: bold;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.status-card.enabled {
+  background: #d1fae5;
+  border: 2px solid #a7f3d0;
+}
+
+.status-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.status-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 0.25rem 0;
+}
+
+.status-card p {
+  color: #047857;
+  margin: 0;
+}
