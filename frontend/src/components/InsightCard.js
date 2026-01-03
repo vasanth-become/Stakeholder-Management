@@ -23,7 +23,7 @@ function InsightCard({ insight, onAction, onDismiss }) {
     // Default actions based on insight type
     if (insight.stakeholderIds && insight.stakeholderIds.length === 1) {
       // Single stakeholder - navigate to profile
-      navigate(`/stakeholders/${insight.stakeholderIds[0]}`);
+      navigate(`/stakeholder/${insight.stakeholderIds[0]}`);
     } else if (insight.stakeholderIds && insight.stakeholderIds.length > 1) {
       // Multiple stakeholders - navigate to filtered list
       navigate('/stakeholders');
