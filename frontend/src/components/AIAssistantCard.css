@@ -1,0 +1,270 @@
+/* AI Assistant Card Styles */
+
+.ai-assistant-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border: 1px solid #e1e7ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+}
+
+/* Header */
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e1e7ff;
+}
+
+.ai-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ai-icon {
+  font-size: 1.25rem;
+}
+
+.ai-title h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.ai-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.ai-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #e1e7ff;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-toggle:hover {
+  background: #f8f9ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+}
+
+/* Loading State */
+.ai-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.ai-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #e1e7ff;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ai-loading p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Error State */
+.ai-error {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.ai-error p {
+  margin: 0 0 1rem 0;
+  color: #64748b;
+}
+
+.ai-retry-btn {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e1e7ff;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #4f46e5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-retry-btn:hover {
+  background: #f8f9ff;
+  border-color: #c7d2fe;
+}
+
+/* Insights Content */
+.ai-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ai-section {
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ai-section-label {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.ai-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.ai-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.ai-list li {
+  margin-bottom: 0.5rem;
+}
+
+.ai-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Variants */
+.ai-warning {
+  background: #fefce8;
+  border-color: #fde68a;
+}
+
+.ai-warning .ai-section-label {
+  color: #92400e;
+}
+
+.ai-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.ai-danger .ai-section-label {
+  color: #991b1b;
+}
+
+.ai-success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.ai-success .ai-section-label {
+  color: #166534;
+}
+
+.ai-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.ai-info .ai-section-label {
+  color: #1e40af;
+}
+
+.ai-suggestion {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #7dd3fc;
+}
+
+.ai-suggestion .ai-section-label {
+  color: #0c4a6e;
+}
+
+/* Disclaimer */
+.ai-disclaimer {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.ai-disclaimer small {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .ai-assistant-card {
+    padding: 1rem;
+  }
+
+  .ai-title h4 {
+    font-size: 1rem;
+  }
+
+  .ai-subtitle {
+    display: none;
+  }
+
+  .ai-section {
+    padding: 0.75rem;
+  }
+
+  .ai-text,
+  .ai-list {
+    font-size: 0.875rem;
+  }
+}
+
+/* Animation */
+.ai-assistant-card {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

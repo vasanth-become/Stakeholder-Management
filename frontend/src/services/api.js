@@ -144,3 +144,24 @@ export const insightsAPI = {
       body: JSON.stringify({ event, insight, metadata }),
     }),
 };
+
+// AI Intelligence API calls
+export const aiAPI = {
+  getCoach: (stakeholderId) => apiCall(`/ai/coach/${stakeholderId}`),
+
+  getRiskAnalysis: (stakeholderId) => apiCall(`/ai/risk/${stakeholderId}`),
+
+  getMeetingPrep: (stakeholderId) => apiCall(`/ai/meeting-prep/${stakeholderId}`),
+
+  extractActions: (data) =>
+    apiCall('/ai/extract-actions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  track: (event, metadata) =>
+    apiCall('/ai/track', {
+      method: 'POST',
+      body: JSON.stringify({ event, metadata }),
+    }),
+};
