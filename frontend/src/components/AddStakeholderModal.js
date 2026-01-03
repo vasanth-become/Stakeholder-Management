@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { stakeholderAPI, projectAPI } from '../services/api';
+import EnrichmentSuggestionPanel from './EnrichmentSuggestionPanel';
 
 function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId = null }) {
   const [projects, setProjects] = useState([]);
@@ -8,6 +9,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
     name: '',
     role: '',
     company: '',
+    email: '',
+    linkedin_url: '',
     project_id: preselectedProjectId || '',
     power: 3,
     influence: 3,
@@ -19,6 +22,9 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [enrichmentSuggestions, setEnrichmentSuggestions] = useState(null);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [showEnrichmentPanel, setShowEnrichmentPanel] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,6 +57,81 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
         [name]: '',
       }));
     }
+  };
+
+  const handleEnrich = async () => {
+    const { email, linkedin_url, name, company } = formData;
+
+    // Check if we have sufficient data
+    if (!email && !linkedin_url && !(name && company)) {
+      setErrors({
+        ...errors,
+        enrichment: 'Please provide either email, LinkedIn URL, or both name and company to enrich the profile.'
+      });
+      return;
+    }
+
+    setIsEnriching(true);
+    setErrors({ ...errors, enrichment: '' });
+
+    try {
+      const result = await stakeholderAPI.enrich({
+        email: email || undefined,
+        linkedinUrl: linkedin_url || undefined,
+        name: name || undefined,
+        company: company || undefined
+      });
+
+      if (result.success && result.suggestions) {
+        setEnrichmentSuggestions(result.suggestions);
+        setShowEnrichmentPanel(true);
+      } else {
+        setErrors({
+          ...errors,
+          enrichment: result.message || 'No enrichment data found. Try adding more information.'
+        });
+      }
+    } catch (error) {
+      setErrors({
+        ...errors,
+        enrichment: 'Failed to enrich profile. Please try again.'
+      });
+    } finally {
+      setIsEnriching(false);
+    }
+  };
+
+  const handleAcceptEnrichment = (acceptedFields) => {
+    // Apply accepted fields to form data
+    const updates = {};
+
+    acceptedFields.forEach(fieldName => {
+      const suggestion = enrichmentSuggestions[fieldName];
+      if (suggestion) {
+        // Map enrichment field names to form field names
+        const fieldMap = {
+          linkedinUrl: 'linkedin_url',
+          companySize: 'company_size'
+        };
+
+        const formFieldName = fieldMap[fieldName] || fieldName;
+        updates[formFieldName] = suggestion.value;
+      }
+    });
+
+    setFormData(prev => ({ ...prev, ...updates }));
+    setShowEnrichmentPanel(false);
+    setEnrichmentSuggestions(null);
+  };
+
+  const handleRejectEnrichment = () => {
+    setShowEnrichmentPanel(false);
+    setEnrichmentSuggestions(null);
+  };
+
+  const canEnrich = () => {
+    const { email, linkedin_url, name, company } = formData;
+    return !!(email || linkedin_url || (name && company));
   };
 
   const validate = () => {
@@ -87,6 +168,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
         name: formData.name.trim(),
         role: formData.role.trim(),
         company: formData.company.trim() || null,
+        email: formData.email.trim() || null,
+        linkedin_url: formData.linkedin_url.trim() || null,
         power: parseInt(formData.power),
         influence: parseInt(formData.influence),
         engagement_status: formData.engagement_status,
@@ -102,6 +185,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
         name: '',
         role: '',
         company: '',
+        email: '',
+        linkedin_url: '',
         project_id: preselectedProjectId || '',
         power: 3,
         influence: 3,
@@ -111,6 +196,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
         notes: '',
       });
       setErrors({});
+      setEnrichmentSuggestions(null);
+      setShowEnrichmentPanel(false);
 
       onSuccess(newStakeholder);
       onClose();
@@ -126,6 +213,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
       name: '',
       role: '',
       company: '',
+      email: '',
+      linkedin_url: '',
       project_id: preselectedProjectId || '',
       power: 3,
       influence: 3,
@@ -135,6 +224,8 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
       notes: '',
     });
     setErrors({});
+    setEnrichmentSuggestions(null);
+    setShowEnrichmentPanel(false);
     onClose();
   };
 
@@ -200,6 +291,73 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
             />
           </div>
         </div>
+
+        {/* Email and LinkedIn */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="e.g., sarah@company.com"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="linkedin_url" className="form-label">
+              LinkedIn URL
+            </label>
+            <input
+              type="url"
+              id="linkedin_url"
+              name="linkedin_url"
+              value={formData.linkedin_url}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="e.g., linkedin.com/in/sarahjohnson"
+            />
+          </div>
+        </div>
+
+        {/* Enrichment Section */}
+        {canEnrich() && (
+          <div className="enrichment-section" style={{
+            padding: '1rem',
+            background: '#f8fafc',
+            borderRadius: '8px',
+            marginBottom: '1.5rem',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 600, color: '#475569' }}>✨ Auto-fill profile data</p>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                  We can find additional information from public sources
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleEnrich}
+                disabled={isEnriching}
+                className="btn btn-outline"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {isEnriching ? 'Searching...' : '🔍 Get Suggestions'}
+              </button>
+            </div>
+            {errors.enrichment && (
+              <div style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.875rem' }}>
+                {errors.enrichment}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Project */}
         <div className="form-group">
@@ -356,6 +514,17 @@ function AddStakeholderModal({ isOpen, onClose, onSuccess, preselectedProjectId 
           </button>
         </div>
       </form>
+
+      {/* Enrichment Suggestion Panel */}
+      {showEnrichmentPanel && enrichmentSuggestions && (
+        <EnrichmentSuggestionPanel
+          suggestions={enrichmentSuggestions}
+          onAccept={handleAcceptEnrichment}
+          onReject={handleRejectEnrichment}
+          onClose={() => setShowEnrichmentPanel(false)}
+          loading={false}
+        />
+      )}
     </Modal>
   );
 }

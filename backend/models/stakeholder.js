@@ -51,19 +51,26 @@ class Stakeholder {
 
   // Create a new stakeholder
   static create(projectId, data) {
-    const { name, role, power, influence, engagement_status, owner, preferred_channel, notes } = data;
+    const {
+      name, role, power, influence, engagement_status, owner, preferred_channel, notes,
+      email, linkedin_url, company, location, bio, department, seniority,
+      timezone, languages, industry, company_size
+    } = data;
 
     const riskScore = this.calculateRiskScore(power, influence, engagement_status);
 
     const stmt = db.prepare(`
       INSERT INTO stakeholders
-      (project_id, name, role, power, influence, engagement_status, owner, preferred_channel, notes, risk_score)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (project_id, name, role, power, influence, engagement_status, owner, preferred_channel, notes, risk_score,
+       email, linkedin_url, company, location, bio, department, seniority, timezone, languages, industry, company_size)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
       projectId, name, role, power, influence,
-      engagement_status, owner, preferred_channel, notes, riskScore
+      engagement_status, owner, preferred_channel, notes, riskScore,
+      email, linkedin_url, company, location, bio, department, seniority,
+      timezone, languages, industry, company_size
     );
 
     return this.findById(result.lastInsertRowid);
@@ -83,7 +90,11 @@ class Stakeholder {
 
   // Update stakeholder
   static update(id, data) {
-    const { name, role, power, influence, engagement_status, owner, preferred_channel, notes } = data;
+    const {
+      name, role, power, influence, engagement_status, owner, preferred_channel, notes,
+      email, linkedin_url, company, location, bio, department, seniority,
+      timezone, languages, industry, company_size
+    } = data;
 
     // Recalculate risk score with update gap check
     const riskScore = this.calculateRiskScore(power, influence, engagement_status, id);
@@ -92,13 +103,20 @@ class Stakeholder {
       UPDATE stakeholders
       SET name = ?, role = ?, power = ?, influence = ?,
           engagement_status = ?, owner = ?, preferred_channel = ?,
-          notes = ?, risk_score = ?, updated_at = CURRENT_TIMESTAMP
+          notes = ?, risk_score = ?,
+          email = ?, linkedin_url = ?, company = ?, location = ?, bio = ?,
+          department = ?, seniority = ?, timezone = ?, languages = ?,
+          industry = ?, company_size = ?,
+          updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
 
     stmt.run(
       name, role, power, influence, engagement_status,
-      owner, preferred_channel, notes, riskScore, id
+      owner, preferred_channel, notes, riskScore,
+      email, linkedin_url, company, location, bio,
+      department, seniority, timezone, languages,
+      industry, company_size, id
     );
 
     return this.findById(id);

@@ -89,6 +89,17 @@ export const stakeholderAPI = {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+
+  // Enrichment methods
+  enrich: (data) => apiCall('/stakeholders/enrich', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  saveEnrichment: (id, data) => apiCall(`/stakeholders/${id}/enrichment`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
 };
 
 // Interaction API calls

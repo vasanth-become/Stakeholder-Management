@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Stakeholder = require('../models/stakeholder');
 const SuggestionEngine = require('../models/suggestionEngine');
+const enrichmentService = require('../services/profileEnrichmentService');
+const analyticsService = require('../services/analyticsService');
 
 // GET all stakeholders across all projects
 router.get('/all', (req, res) => {
@@ -160,6 +162,110 @@ router.get('/:id/suggestions', (req, res) => {
 
     res.json(suggestions);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST enrich stakeholder profile
+// IMPORTANT: This must come before /:id to match first
+router.post('/enrich', async (req, res) => {
+  try {
+    const { email, linkedinUrl, name, company } = req.body;
+
+    console.log('[Enrichment] Request received:', { email, linkedinUrl, name, company });
+
+    // Enrich profile using the enrichment service
+    const result = await enrichmentService.enrichProfile({
+      email,
+      linkedinUrl,
+      name,
+      company
+    });
+
+    // Track analytics event
+    if (result.success) {
+      analyticsService.trackEnrichmentSuggested({
+        suggestions: result.suggestions,
+        has_email: !!email,
+        has_linkedin: !!linkedinUrl,
+        has_name_company: !!(name && company),
+        sources: result.metadata?.sources
+      });
+    } else {
+      analyticsService.trackEnrichmentError({
+        message: result.message,
+        has_email: !!email,
+        has_linkedin: !!linkedinUrl,
+        has_name_company: !!(name && company)
+      });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('[Enrichment] Error:', error);
+
+    // Track error event
+    analyticsService.trackEnrichmentError({
+      error: error.message,
+      has_email: !!req.body.email,
+      has_linkedin: !!req.body.linkedinUrl,
+      has_name_company: !!(req.body.name && req.body.company)
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Enrichment service error',
+      suggestions: null
+    });
+  }
+});
+
+// POST save enrichment metadata
+// IMPORTANT: This must come before /:id to match first
+router.post('/:id/enrichment', async (req, res) => {
+  try {
+    const { suggestions, acceptedFields, userId } = req.body;
+
+    // Verify stakeholder exists
+    const stakeholder = Stakeholder.findById(req.params.id);
+    if (!stakeholder) {
+      return res.status(404).json({ error: 'Stakeholder not found' });
+    }
+
+    // Track analytics - check if accepting or rejecting
+    const allFields = Object.keys(suggestions || {});
+    const isAccepting = acceptedFields && acceptedFields.length > 0;
+
+    if (isAccepting) {
+      analyticsService.trackEnrichmentAccepted({
+        stakeholder_id: req.params.id,
+        acceptedFields,
+        total_suggestions: allFields.length,
+        acceptance_rate: (acceptedFields.length / allFields.length) * 100,
+        userId: userId || 'system'
+      });
+    } else {
+      analyticsService.trackEnrichmentRejected({
+        stakeholder_id: req.params.id,
+        total_suggestions: allFields.length,
+        userId: userId || 'system'
+      });
+    }
+
+    // Save enrichment metadata
+    await enrichmentService.saveEnrichmentMetadata(
+      req.params.id,
+      suggestions,
+      acceptedFields,
+      userId || 'system'
+    );
+
+    res.json({
+      success: true,
+      message: 'Enrichment metadata saved successfully'
+    });
+  } catch (error) {
+    console.error('[Enrichment] Error saving metadata:', error);
     res.status(500).json({ error: error.message });
   }
 });
