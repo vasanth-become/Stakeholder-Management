@@ -5,6 +5,7 @@ import Tabs from '../components/Tabs';
 import EditProjectModal from '../components/EditProjectModal';
 import ArchiveProjectModal from '../components/ArchiveProjectModal';
 import Toast from '../components/Toast';
+import BackButton from '../components/BackButton';
 import { AIService } from '../utils/aiService';
 
 function ProjectDetailPage() {
@@ -139,6 +140,9 @@ function ProjectDetailPage() {
 
   return (
     <div className="page">
+      {/* Back Button */}
+      <BackButton to="/projects" label="Back to Projects" />
+
       {/* Header Card */}
       <div className="project-header-card">
         <div className="project-header-main">

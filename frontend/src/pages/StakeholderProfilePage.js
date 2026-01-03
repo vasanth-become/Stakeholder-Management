@@ -7,6 +7,7 @@ import AIAssistantPanel from '../components/AIAssistantPanel';
 import AIInsightsModal from '../components/AIInsightsModal';
 import ImportMeetingNotesModal from '../components/ImportMeetingNotesModal';
 import AIInteractionPreview from '../components/AIInteractionPreview';
+import BackButton from '../components/BackButton';
 import { AIService } from '../utils/aiService';
 
 function StakeholderProfilePage() {
@@ -248,6 +249,9 @@ function StakeholderProfilePage() {
 
   return (
     <div className="page">
+      {/* Back Button */}
+      <BackButton to="/stakeholders" label="Back to Stakeholders" />
+
       {/* Header Card */}
       <div className="stakeholder-header-card">
         <div className="stakeholder-header-main">
