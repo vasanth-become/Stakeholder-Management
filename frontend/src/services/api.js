@@ -127,3 +127,20 @@ export const interactionAPI = {
     method: 'DELETE',
   }),
 };
+
+// Insights API calls
+export const insightsAPI = {
+  getGlobal: (limit) => apiCall(`/insights/global${limit ? `?limit=${limit}` : ''}`),
+
+  getByProject: (projectId, limit) =>
+    apiCall(`/insights/project/${projectId}${limit ? `?limit=${limit}` : ''}`),
+
+  getByStakeholder: (stakeholderId, limit) =>
+    apiCall(`/insights/stakeholder/${stakeholderId}${limit ? `?limit=${limit}` : ''}`),
+
+  track: (event, insight, metadata) =>
+    apiCall('/insights/track', {
+      method: 'POST',
+      body: JSON.stringify({ event, insight, metadata }),
+    }),
+};

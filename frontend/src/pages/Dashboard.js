@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { projectAPI, stakeholderAPI, interactionAPI } from '../services/api';
+import { projectAPI, stakeholderAPI, interactionAPI, insightsAPI } from '../services/api';
 import CreateProjectModal from '../components/CreateProjectModal';
 import Toast from '../components/Toast';
+import InsightsSection from '../components/InsightsSection';
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -10,6 +11,8 @@ function Dashboard() {
   const [highRiskStakeholders, setHighRiskStakeholders] = useState([]);
   const [stakeholderInteractions, setStakeholderInteractions] = useState({});
   const [followUpActions, setFollowUpActions] = useState([]);
+  const [insights, setInsights] = useState([]);
+  const [insightsLoading, setInsightsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -18,7 +21,21 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
+    loadInsights();
   }, []);
+
+  async function loadInsights() {
+    try {
+      setInsightsLoading(true);
+      const response = await insightsAPI.getGlobal(8);
+      setInsights(response.insights || []);
+    } catch (err) {
+      console.error('Failed to load insights:', err);
+      setInsights([]);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }
 
   async function loadData() {
     try {
@@ -97,6 +114,18 @@ function Dashboard() {
     setToast({ show: false, message: '', type: 'success' });
   }
 
+  function handleInsightAction(insight) {
+    // Track the action
+    insightsAPI.track('insight_action_clicked', insight, {});
+
+    // Default navigation is handled by InsightCard
+  }
+
+  function handleInsightDismiss(insight) {
+    // Track the dismissal
+    insightsAPI.track('insight_dismissed', insight, {});
+  }
+
   if (loading) return <div className="loading">Loading dashboard...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -143,6 +172,16 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Insights Section */}
+      <InsightsSection
+        title="Insights"
+        insights={insights}
+        loading={insightsLoading}
+        onInsightAction={handleInsightAction}
+        onInsightDismiss={handleInsightDismiss}
+        maxDisplay={8}
+      />
 
       {/* High Risk Stakeholders Table */}
       <div className="card">

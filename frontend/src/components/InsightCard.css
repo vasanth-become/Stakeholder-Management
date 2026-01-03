@@ -1,0 +1,261 @@
+/* Insight Card Styles */
+
+.insight-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-left-width: 4px;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.insight-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Category Colors */
+.insight-danger {
+  border-left-color: #dc2626;
+  background: linear-gradient(to right, #fef2f2 0%, white 20%);
+}
+
+.insight-warning {
+  border-left-color: #f59e0b;
+  background: linear-gradient(to right, #fefce8 0%, white 20%);
+}
+
+.insight-success {
+  border-left-color: #10b981;
+  background: linear-gradient(to right, #f0fdf4 0%, white 20%);
+}
+
+.insight-info {
+  border-left-color: #3b82f6;
+  background: linear-gradient(to right, #eff6ff 0%, white 20%);
+}
+
+/* Empty State */
+.insight-empty-state {
+  border-left-color: #cbd5e1;
+  background: #f8fafc;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.insight-empty-state .insight-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.insight-empty-state .insight-title {
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.insight-empty-state .insight-message {
+  color: #94a3b8;
+}
+
+/* Icon */
+.insight-icon {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+}
+
+/* Content */
+.insight-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.insight-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.insight-message {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* Action Button */
+.insight-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.insight-action:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e293b;
+  transform: translateX(2px);
+}
+
+.insight-danger .insight-action {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.insight-danger .insight-action:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.insight-warning .insight-action {
+  color: #f59e0b;
+  border-color: #fde68a;
+}
+
+.insight-warning .insight-action:hover {
+  background: #fefce8;
+  border-color: #fcd34d;
+}
+
+.insight-success .insight-action {
+  color: #10b981;
+  border-color: #a7f3d0;
+}
+
+.insight-success .insight-action:hover {
+  background: #f0fdf4;
+  border-color: #6ee7b7;
+}
+
+.insight-info .insight-action {
+  color: #3b82f6;
+  border-color: #bfdbfe;
+}
+
+.insight-info .insight-action:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/* Dismiss Button */
+.insight-dismiss {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.25rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.insight-dismiss:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #64748b;
+}
+
+/* Category Indicator Dot (subtle) */
+.insight-category-indicator {
+  position: absolute;
+  top: 1.25rem;
+  right: 0.75rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.insight-danger .insight-category-indicator {
+  background: #dc2626;
+}
+
+.insight-warning .insight-category-indicator {
+  background: #f59e0b;
+}
+
+.insight-success .insight-category-indicator {
+  background: #10b981;
+}
+
+.insight-info .insight-category-indicator {
+  background: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .insight-card {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .insight-icon {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.25rem;
+  }
+
+  .insight-title {
+    font-size: 0.875rem;
+  }
+
+  .insight-message {
+    font-size: 0.8125rem;
+  }
+
+  .insight-action {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.insight-card {
+  animation: slideIn 0.3s ease;
+}
