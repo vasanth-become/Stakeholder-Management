@@ -36,24 +36,24 @@ class VisualInsightsService {
 
       // Build heatmap data
       const heatmapData = stakeholders.map(stakeholder => {
-        const cells = periods.map(period => {
+        const heatmapCells = periods.map(period => {
           return this.calculateEngagementCell(stakeholder.id, period);
         });
 
         return {
-          stakeholderId: stakeholder.id,
-          stakeholderName: stakeholder.name,
+          id: stakeholder.id,
+          name: stakeholder.name,
           role: stakeholder.role,
           power: stakeholder.power,
           influence: stakeholder.influence,
           riskScore: stakeholder.risk_score,
-          cells
+          heatmapCells
         };
       });
 
       return {
         success: true,
-        periods: periods.map(p => p.label),
+        periods: periods,
         stakeholders: heatmapData,
         sortOptions: ['influence', 'power', 'risk']
       };
@@ -80,10 +80,13 @@ class VisualInsightsService {
 
     if (interactions.length === 0) {
       return {
-        level: 'no_data',
-        color: '#e2e8f0',
-        tooltip: 'No interactions in this period',
-        interactionCount: 0
+        period: period,
+        engagementStatus: 'no_data',
+        interactionCount: 0,
+        lastInteraction: null,
+        toneTrend: 'stable',
+        owner: stakeholder?.owner || null,
+        notes: null
       };
     }
 
@@ -92,17 +95,18 @@ class VisualInsightsService {
     // - Interaction frequency
     // - Follow-up patterns
     const level = this.determineEngagementLevel(stakeholder, interactions);
-    const color = this.getEngagementColor(level);
 
     const lastInteraction = interactions[0];
+    const toneTrend = this.calculateToneTrend(interactions);
 
     return {
-      level,
-      color,
-      tooltip: `${interactions.length} interaction${interactions.length > 1 ? 's' : ''} | Last: ${lastInteraction.interaction_type}`,
+      period: period,
+      engagementStatus: level,
       interactionCount: interactions.length,
-      lastInteractionDate: lastInteraction.date,
-      lastInteractionType: lastInteraction.interaction_type
+      lastInteraction: lastInteraction.date,
+      toneTrend: toneTrend,
+      owner: stakeholder?.owner || null,
+      notes: interactions[0]?.notes || null
     };
   }
 
@@ -148,6 +152,34 @@ class VisualInsightsService {
     };
 
     return colors[level] || colors.no_data;
+  }
+
+  /**
+   * Calculate tone trend from interactions
+   */
+  calculateToneTrend(interactions) {
+    if (interactions.length < 2) {
+      return 'stable';
+    }
+
+    // Count positive/negative tones in recent vs older interactions
+    const midPoint = Math.floor(interactions.length / 2);
+    const recent = interactions.slice(0, midPoint);
+    const older = interactions.slice(midPoint);
+
+    const recentPositive = recent.filter(i => i.tone === 'positive' || i.tone === 'neutral').length;
+    const olderPositive = older.filter(i => i.tone === 'positive' || i.tone === 'neutral').length;
+
+    const recentRatio = recentPositive / recent.length;
+    const olderRatio = olderPositive / older.length;
+
+    if (recentRatio > olderRatio + 0.2) {
+      return 'improving';
+    } else if (recentRatio < olderRatio - 0.2) {
+      return 'declining';
+    }
+
+    return 'stable';
   }
 
   /**
