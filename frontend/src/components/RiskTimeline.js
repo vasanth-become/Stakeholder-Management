@@ -270,7 +270,11 @@ const RiskTimeline = ({ projectId = 1, stakeholderId = null, days = 30 }) => {
     );
   }
 
-  if (!timelineData || !timelineData.timelines || timelineData.timelines.length === 0) {
+  if (!timelineData ||
+      !timelineData.timelines ||
+      timelineData.timelines.length === 0 ||
+      !timelineData.timelines[0].dataPoints ||
+      timelineData.timelines[0].dataPoints.length === 0) {
     return (
       <div className="timeline-container empty">
         <div className="timeline-empty">

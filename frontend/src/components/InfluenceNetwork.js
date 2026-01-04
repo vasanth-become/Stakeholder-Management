@@ -51,7 +51,10 @@ const InfluenceNetwork = ({ projectId = 1 }) => {
   };
 
   const initializeSimulation = () => {
-    if (!networkData || !canvasRef.current) return;
+    if (!networkData ||
+        !networkData.nodes ||
+        !networkData.edges ||
+        !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -408,7 +411,7 @@ const InfluenceNetwork = ({ projectId = 1 }) => {
       <div className="network-legend">
         <div className="legend-title">Categories:</div>
         <div className="legend-items">
-          {networkData.categories.map((category, idx) => (
+          {(networkData.categories || []).map((category, idx) => (
             <div key={idx} className="legend-item">
               <div
                 className="legend-color"

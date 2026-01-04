@@ -142,7 +142,10 @@ const EngagementHeatmap = ({ projectId = 1, weeks = 8 }) => {
     );
   }
 
-  if (!heatmapData || !heatmapData.stakeholders || heatmapData.stakeholders.length === 0) {
+  if (!heatmapData ||
+      !heatmapData.stakeholders ||
+      !heatmapData.periods ||
+      heatmapData.stakeholders.length === 0) {
     return (
       <div className="heatmap-container empty">
         <div className="heatmap-empty">
@@ -213,7 +216,7 @@ const EngagementHeatmap = ({ projectId = 1, weeks = 8 }) => {
                   </span>
                 </div>
               </div>
-              {stakeholder.heatmapCells.map((cell, idx) => (
+              {(stakeholder.heatmapCells || []).map((cell, idx) => (
                 <div
                   key={idx}
                   className={`engagement-cell ${getCellColor(cell.engagementStatus, cell.interactionCount)}`}
