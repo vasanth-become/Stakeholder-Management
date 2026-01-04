@@ -13,6 +13,8 @@ const oauthRoutes = require('./routes/oauth');
 const insightsRoutes = require('./routes/insights');
 const aiRoutes = require('./routes/ai');
 const visualInsightsRoutes = require('./routes/visualInsights');
+const commentsRoutes = require('./routes/comments');
+const notificationsRoutes = require('./routes/notifications');
 
 // Import middleware
 const { oauthErrorHandler } = require('./middleware/oauth');
@@ -50,6 +52,8 @@ app.use('/oauth', oauthRoutes);
 app.use('/api/insights', insightsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/visual-insights', visualInsightsRoutes);
+app.use('/api/comments', commentsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

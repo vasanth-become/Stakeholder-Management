@@ -191,3 +191,91 @@ export const visualInsightsAPI = {
       body: JSON.stringify({ event, metadata }),
     }),
 };
+
+// Comments API calls
+export const commentsAPI = {
+  getComments: (entityType, entityId, includeThreads = true, visibility = null) => {
+    const params = new URLSearchParams({
+      entity_type: entityType,
+      entity_id: entityId.toString(),
+      include_threads: includeThreads.toString()
+    });
+    if (visibility) {
+      params.append('visibility', visibility);
+    }
+    return apiCall(`/comments?${params}`);
+  },
+
+  createComment: (data) =>
+    apiCall('/comments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getComment: (commentId) =>
+    apiCall(`/comments/${commentId}`),
+
+  updateComment: (commentId, content) =>
+    apiCall(`/comments/${commentId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
+    }),
+
+  deleteComment: (commentId) =>
+    apiCall(`/comments/${commentId}`, {
+      method: 'DELETE',
+    }),
+
+  addReaction: (commentId, reactionType) =>
+    apiCall(`/comments/${commentId}/reactions`, {
+      method: 'POST',
+      body: JSON.stringify({ reaction_type: reactionType }),
+    }),
+
+  removeReaction: (commentId, reactionType) =>
+    apiCall(`/comments/${commentId}/reactions/${reactionType}`, {
+      method: 'DELETE',
+    }),
+};
+
+// Notifications API calls
+export const notificationsAPI = {
+  getNotifications: (limit = 50, offset = 0, unreadOnly = false, type = null) => {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+      unread_only: unreadOnly.toString()
+    });
+    if (type) {
+      params.append('type', type);
+    }
+    return apiCall(`/notifications?${params}`);
+  },
+
+  getUnreadCount: () =>
+    apiCall('/notifications/unread-count'),
+
+  markAsRead: (notificationId) =>
+    apiCall(`/notifications/${notificationId}/read`, {
+      method: 'PUT',
+    }),
+
+  markAllAsRead: () =>
+    apiCall('/notifications/read-all', {
+      method: 'PUT',
+    }),
+
+  deleteNotification: (notificationId) =>
+    apiCall(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+    }),
+
+  getPreferences: () =>
+    apiCall('/notifications/preferences'),
+
+  updatePreferences: (preferences) =>
+    apiCall('/notifications/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+    }),
+};
