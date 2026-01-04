@@ -165,3 +165,29 @@ export const aiAPI = {
       body: JSON.stringify({ event, metadata }),
     }),
 };
+
+// Visual Insights API calls
+export const visualInsightsAPI = {
+  getHeatmap: (projectId, weeks = 8, sortBy = 'influence') =>
+    apiCall(`/visual-insights/heatmap?projectId=${projectId}&weeks=${weeks}&sortBy=${sortBy}`),
+
+  getRiskTimeline: (projectId, stakeholderId = null, days = 30) => {
+    const params = new URLSearchParams({
+      projectId: projectId.toString(),
+      days: days.toString()
+    });
+    if (stakeholderId) {
+      params.append('stakeholderId', stakeholderId.toString());
+    }
+    return apiCall(`/visual-insights/risk-timeline?${params}`);
+  },
+
+  getInfluenceNetwork: (projectId) =>
+    apiCall(`/visual-insights/influence-network?projectId=${projectId}`),
+
+  track: (event, metadata) =>
+    apiCall('/visual-insights/track', {
+      method: 'POST',
+      body: JSON.stringify({ event, metadata }),
+    }),
+};

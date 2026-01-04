@@ -4,6 +4,9 @@ import { projectAPI, stakeholderAPI, interactionAPI, insightsAPI } from '../serv
 import CreateProjectModal from '../components/CreateProjectModal';
 import Toast from '../components/Toast';
 import InsightsSection from '../components/InsightsSection';
+import EngagementHeatmap from '../components/EngagementHeatmap';
+import RiskTimeline from '../components/RiskTimeline';
+import InfluenceNetwork from '../components/InfluenceNetwork';
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -182,6 +185,22 @@ function Dashboard() {
         onInsightDismiss={handleInsightDismiss}
         maxDisplay={8}
       />
+
+      {/* Visual Intelligence Section */}
+      {activeProjects > 0 && allStakeholders.length > 0 && (
+        <div className="visual-intelligence-section">
+          <div className="section-header">
+            <h2>Visual Intelligence</h2>
+            <p className="text-muted">
+              See engagement patterns, risk trends, and influence relationships at a glance
+            </p>
+          </div>
+
+          <EngagementHeatmap projectId={1} weeks={8} />
+          <RiskTimeline projectId={1} days={30} />
+          <InfluenceNetwork projectId={1} />
+        </div>
+      )}
 
       {/* High Risk Stakeholders Table */}
       <div className="card">
