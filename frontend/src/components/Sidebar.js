@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 function Sidebar() {
   const location = useLocation();
@@ -43,6 +44,9 @@ function Sidebar() {
 
       {/* Footer */}
       <div className="sidebar-footer">
+        <div className="sidebar-notification">
+          <NotificationBell />
+        </div>
         <div className="user-info">
           <div className="user-avatar">U</div>
           <div className="user-details">

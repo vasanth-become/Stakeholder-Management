@@ -8,6 +8,7 @@ import AIInsightsModal from '../components/AIInsightsModal';
 import ImportMeetingNotesModal from '../components/ImportMeetingNotesModal';
 import AIInteractionPreview from '../components/AIInteractionPreview';
 import BackButton from '../components/BackButton';
+import CommentThread from '../components/CommentThread';
 import { AIService } from '../utils/aiService';
 
 function StakeholderProfilePage() {
@@ -245,6 +246,7 @@ function StakeholderProfilePage() {
     { id: 'timeline', label: 'Timeline', icon: '📅', count: interactions.length },
     { id: 'notes', label: 'Notes', icon: '📝' },
     { id: 'ai-strategy', label: 'AI Strategy', icon: '✨' },
+    { id: 'discussion', label: 'Discussion', icon: '💬' },
   ];
 
   return (
@@ -798,6 +800,14 @@ function StakeholderProfilePage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'discussion' && (
+          <CommentThread
+            entityType="stakeholder"
+            entityId={id}
+            title="Team Discussion"
+          />
         )}
       </div>
 

@@ -148,6 +148,10 @@ body {
   border-top: 1px solid #E5E7EB;
 }
 
+.sidebar-notification {
+  margin-bottom: 0.75rem;
+}
+
 .user-info {
   display: flex;
   align-items: center;
